@@ -19,22 +19,22 @@ Backend & API (Node.js, Express.js, MongoDB)
 - Algorithme d’optimisation des trajets avec Google Directions API.
 4. Technologies Utilisées
 Composant	Technologie
-Frontend Mobile	React Native, Expo, Google Maps API
-Backend & API	Node.js, Express.js, MongoDB
-Authentification	JWT, bcrypt
-Base de Données	MongoDB
-Capteurs IoT	ESP32, capteurs ultrasons
-Optimisation des trajets	Google Directions API, Algorithme Dijkstra / A*
-Prédiction IA	Scikit-Learn (Régression linéaire multiple), xgboost(Régression linéaire multiple)
+Frontend Mobile :	React Native, Expo, Google Maps API
+Backend & API :	Node.js, Express.js, MongoDB
+Authentification : JWT, bcrypt
+Base de Données :	MongoDB
+Capteurs IoT(optionnel) :	ESP32, capteurs ultrasons
+Optimisation des trajets	: Google Directions API, Algorithme Dijkstra / A*
+Prédiction IA	: Scikit-Learn (Régression linéaire multiple), xgboost(Régression linéaire multiple)
 5. Intelligence Artificielle
 - Prédiction du remplissage des poubelles avec Machine Learning.
 - Optimisation des trajets des camions avec Google Directions API ou intelligence artificielle.
 - (Optionnel) Détection automatique des déchets avec vision par ordinateur.
 6. Plan de Développement et Répartition du Travail
 Phase	Tâches	Durée
-Phase 1	Développement du Backend et API	3 semaines
-Phase 2	Développement de l’Application Mobile	4 semaines
-Phase 3	Ajout de l’IA & Optimisation	3 semaines
-Phase 4	Tests & Validation	3 semaines
+Phase 1	: Développement du Backend et API ->	3 semaines
+Phase 2	: Développement de l’Application Mobile -> 4 semaines
+Phase 3	: Ajout de l’IA & Optimisation	-> 3 semaines
+Phase 4	: Tests & Validation	-> 3 semaines
 7. Conclusion
 Ce projet allie technologie mobile et intelligence artificielle pour améliorer l’efficacité et la durabilité de la gestion des déchets urbains. En combinant une application mobile intuitive et des algorithmes d’optimisation, nous proposons une solution moderne, scalable et écologique.
