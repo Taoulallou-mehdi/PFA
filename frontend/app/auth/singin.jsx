@@ -3,7 +3,7 @@ import React from 'react';
 import Colors from '../../constant/Colors'; // Import for Colors
 import { useRouter } from 'expo-router';
 
-export default function Singin() {
+export default function singin() {
   const router = useRouter();
 
   return (
@@ -28,9 +28,9 @@ export default function Singin() {
           marginTop: 20,
         }}
       >
-        Create New Account
+        SingUp
       </Text>
-      <TextInput placeholder="Full Name" style={styles.TextInput} />
+     
       <TextInput placeholder="Email" style={styles.TextInput} />
       <TextInput placeholder="Password" style={styles.TextInput} secureTextEntry={true} />
 
@@ -51,7 +51,7 @@ export default function Singin() {
             color: 'white',
             fontSize: 16,
             fontWeight: 'bold',
-        }}>Create Account</Text>
+        }}>SignUp</Text>
       </TouchableOpacity>
       <View style={{
         display: 'flex',
@@ -66,13 +66,13 @@ export default function Singin() {
             fontFamily: 'Arial',
             fontSize: 16,
             }}>
-          Already have an account?</Text>
+          Create an Account ! </Text>
         <Pressable onPress={() => router.push('/auth/singUp') }
         > 
             <Text style={{
                 color: Colors.GREEN, // Ensure Colors.GREEN is defined
                 fontWeight: 'bold',
-            }}>Log in</Text>
+            }}>sign up</Text>
         </Pressable>
     </View>
     </View>
