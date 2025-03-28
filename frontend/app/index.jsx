@@ -1,13 +1,18 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
-import Colors from "./../constant/Colors";
+import Colors from "../constant/Colors";
+import { useRouter } from "expo-router";
 
 export default function HomeScreen() {
+  const router=useRouter();
   return (
     <View style={styles.container}>
       {/* Top Section */}
       <View style={styles.topSection}>
-        <TouchableOpacity style={styles.loginButton}>
+        <TouchableOpacity style={styles.loginButton}
+        
+        onPress={()=>router.push('/auth/singUp')}>
+        
           <Text style={styles.loginButtonText}>Login</Text>
         </TouchableOpacity>
       </View>
@@ -30,7 +35,11 @@ export default function HomeScreen() {
       </Text>
 
       {/* Button Section */}
-      <TouchableOpacity style={styles.getStartedButton}>
+      <TouchableOpacity style={styles.getStartedButton}
+       onPress={()=>router.push('/auth/singin')}>
+        
+      
+
         <Text style={styles.getStartedButtonText}>Get Started →</Text>
       </TouchableOpacity>
     </View>
