@@ -107,8 +107,9 @@ Créez un fichier `.env` dans les répertoires `backend` et `frontend` avec les 
 
 ```
 PORT=5000
-MONGO_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/<database>?retryWrites=true&w=majority
-JWT_SECRET=your_jwt_secret_key
+MONGO_URI=mongodb+srv://etaoulallou:7NagnJgjZMsnlu5T@cluster0.2ndanyk.mongodb.net/db_GestionDechets?retryWrites=true&w=majority&appName=Cluster0
+JWT_SECRET=supersecretkey
+
 ```
 
 ### Frontend
