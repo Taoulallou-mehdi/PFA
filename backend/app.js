@@ -6,6 +6,7 @@ const UserRoutes = require('./src/routes/UserRoutes');
 const PoubelleRoutes = require('./src/routes/PoubelleRoutes');
 const CollecteRoutes = require('./src/routes/CollecteRoutes');
 const TrajetRoutes = require('./src/routes/TrajetRoutes');
+const { errorHandler, notFoundHandler } = require('./src/middleware/errorHandler');
 
 dotenv.config();
 
@@ -29,6 +30,9 @@ app.use('/api/users', UserRoutes);
 app.use('/api/poubelles', PoubelleRoutes);
 app.use('/api/collectes', CollecteRoutes);
 app.use('/api/trajets', TrajetRoutes);
+app.use(notFoundHandler);
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
