@@ -1,20 +1,148 @@
-import { View, Text, Image, TextInput, StyleSheet, TouchableOpacity, Pressable, StatusBar, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, Image, TextInput, StyleSheet, TouchableOpacity, Pressable, StatusBar, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import React, { useState } from 'react';
 import Colors from '../../constant/Colors';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons'; // Assurez-vous d'avoir installé expo/vector-icons
+import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import * as Facebook from 'expo-auth-session/providers/facebook';
+import * as AuthSession from 'expo-auth-session';
+
+// Permet à l'authentification web de fonctionner en redirection
+WebBrowser.maybeCompleteAuthSession();
 
 export default function SignIn() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Configuration pour Google Sign-In
+  // Remplacez ces valeurs par vos propres identifiants
+  const [googleRequest, googleResponse, googlePromptAsync] = Google.useAuthRequest({
+    expoClientId: 'VOTRE_EXPO_CLIENT_ID',
+    iosClientId: 'VOTRE_IOS_CLIENT_ID',
+    androidClientId: 'VOTRE_ANDROID_CLIENT_ID',
+    webClientId: 'VOTRE_WEB_CLIENT_ID',
+  });
+
+  // Configuration pour Facebook Login
+  // Remplacez ces valeurs par vos propres identifiants
+  const [fbRequest, fbResponse, fbPromptAsync] = Facebook.useAuthRequest({
+    clientId: 'VOTRE_FACEBOOK_APP_ID',
+  });
+
+  React.useEffect(() => {
+    if (googleResponse?.type === 'success') {
+      const { authentication } = googleResponse;
+      // Récupérer les informations utilisateur avec le token d'accès
+      fetchGoogleUserInfo(authentication.accessToken);
+    }
+  }, [googleResponse]);
+
+  React.useEffect(() => {
+    if (fbResponse?.type === 'success') {
+      const { authentication } = fbResponse;
+      // Récupérer les informations utilisateur avec le token d'accès
+      fetchFacebookUserInfo(authentication.accessToken);
+    }
+  }, [fbResponse]);
+
+  const fetchGoogleUserInfo = async (accessToken) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        'https://www.googleapis.com/userinfo/v2/me',
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+      const userInfo = await response.json();
+      
+      // Traiter les informations de l'utilisateur
+      console.log('Google User Info:', userInfo);
+      
+      // Connecter l'utilisateur dans votre système
+      handleSocialLogin(userInfo, 'google');
+      
+      Alert.alert('Succès', `Connecté avec Google en tant que ${userInfo.name}`);
+      setIsLoading(false);
+      // Rediriger vers la page d'accueil après connexion réussie
+      router.push('/home');
+    } catch (error) {
+      console.error('Erreur lors de la récupération des informations Google:', error);
+      Alert.alert('Erreur', 'Impossible de récupérer vos informations Google');
+      setIsLoading(false);
+    }
+  };
+
+  const fetchFacebookUserInfo = async (accessToken) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `https://graph.facebook.com/me?fields=id,name,email,picture&access_token=${accessToken}`
+      );
+      const userInfo = await response.json();
+      
+      // Traiter les informations de l'utilisateur
+      console.log('Facebook User Info:', userInfo);
+      
+      // Connecter l'utilisateur dans votre système
+      handleSocialLogin(userInfo, 'facebook');
+      
+      Alert.alert('Succès', `Connecté avec Facebook en tant que ${userInfo.name}`);
+      setIsLoading(false);
+      // Rediriger vers la page d'accueil après connexion réussie
+      router.push('/home');
+    } catch (error) {
+      console.error('Erreur lors de la récupération des informations Facebook:', error);
+      Alert.alert('Erreur', 'Impossible de récupérer vos informations Facebook');
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await googlePromptAsync();
+    } catch (error) {
+      console.error('Erreur de connexion Google:', error);
+      Alert.alert('Erreur', 'La connexion avec Google a échoué');
+    }
+  };
+
+  const handleFacebookSignIn = async () => {
+    try {
+      await fbPromptAsync();
+    } catch (error) {
+      console.error('Erreur de connexion Facebook:', error);
+      Alert.alert('Erreur', 'La connexion avec Facebook a échoué');
+    }
+  };
 
   const handleSignIn = () => {
-    // Logique de connexion ici
-    console.log('Connexion avec:', email, password);
-    // Navigation après une connexion réussie
-    // router.push('/home');
+    // Logique de connexion traditionnelle ici
+    if (!email || !password) {
+      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+      return;
+    }
+    
+    setIsLoading(true);
+    // Simuler une connexion (remplacer par votre logique d'API)
+    setTimeout(() => {
+      console.log('Connexion avec:', email, password);
+      setIsLoading(false);
+      // Navigation après une connexion réussie
+      router.push('/home');
+    }, 1000);
+  };
+
+  // Fonction pour gérer la connexion via réseaux sociaux
+  const handleSocialLogin = (userInfo, provider) => {
+    // Logique pour connecter l'utilisateur dans votre système
+    console.log(`Connexion via ${provider}:`, userInfo);
+    // Vous devrez implémenter la logique de vérification/création de compte
+    // et de génération de token d'authentification
   };
 
   return (
@@ -78,8 +206,11 @@ export default function SignIn() {
         style={styles.signInButton}
         onPress={handleSignIn}
         activeOpacity={0.8}
+        disabled={isLoading}
       >
-        <Text style={styles.signInButtonText}>Se connecter</Text>
+        <Text style={styles.signInButtonText}>
+          {isLoading ? 'Chargement...' : 'Se connecter'}
+        </Text>
       </TouchableOpacity>
 
       <View style={styles.divider}>
@@ -89,10 +220,18 @@ export default function SignIn() {
       </View>
 
       <View style={styles.socialButtonsContainer}>
-        <TouchableOpacity style={styles.socialButton}>
+        <TouchableOpacity 
+          style={styles.socialButton}
+          onPress={handleGoogleSignIn}
+          disabled={isLoading}
+        >
           <Ionicons name="logo-google" size={20} color="#DB4437" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.socialButton}>
+        <TouchableOpacity 
+          style={styles.socialButton}
+          onPress={handleFacebookSignIn}
+          disabled={isLoading}
+        >
           <Ionicons name="logo-facebook" size={20} color="#4267B2" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.socialButton}>

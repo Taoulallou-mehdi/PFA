@@ -1,8 +1,15 @@
-import { View, Text, Image, TextInput, StyleSheet, TouchableOpacity, Pressable, StatusBar, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, Image, TextInput, StyleSheet, TouchableOpacity, Pressable, StatusBar, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import React, { useState } from 'react';
 import Colors from '../../constant/Colors';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons'; // Assurez-vous d'avoir installé expo/vector-icons
+import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import * as Facebook from 'expo-auth-session/providers/facebook';
+import * as AuthSession from 'expo-auth-session';
+
+// Permet à l'authentification web de fonctionner en redirection
+WebBrowser.maybeCompleteAuthSession();
 
 export default function SignUp() {
   const router = useRouter();
@@ -10,11 +17,126 @@ export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Configuration pour Google Sign-In
+  // Remplacez ces valeurs par vos propres identifiants
+  const [googleRequest, googleResponse, googlePromptAsync] = Google.useAuthRequest({
+    expoClientId: 'VOTRE_EXPO_CLIENT_ID',
+    iosClientId: 'VOTRE_IOS_CLIENT_ID',
+    androidClientId: 'VOTRE_ANDROID_CLIENT_ID',
+    webClientId: 'VOTRE_WEB_CLIENT_ID',
+  });
+
+  // Configuration pour Facebook Login
+  // Remplacez ces valeurs par vos propres identifiants
+  const [fbRequest, fbResponse, fbPromptAsync] = Facebook.useAuthRequest({
+    clientId: 'VOTRE_FACEBOOK_APP_ID',
+  });
+
+  React.useEffect(() => {
+    if (googleResponse?.type === 'success') {
+      const { authentication } = googleResponse;
+      // Récupérer les informations utilisateur avec le token d'accès
+      fetchGoogleUserInfo(authentication.accessToken);
+    }
+  }, [googleResponse]);
+
+  React.useEffect(() => {
+    if (fbResponse?.type === 'success') {
+      const { authentication } = fbResponse;
+      // Récupérer les informations utilisateur avec le token d'accès
+      fetchFacebookUserInfo(authentication.accessToken);
+    }
+  }, [fbResponse]);
+
+  const fetchGoogleUserInfo = async (accessToken) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        'https://www.googleapis.com/userinfo/v2/me',
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+      const userInfo = await response.json();
+      
+      // Traiter les informations de l'utilisateur
+      console.log('Google User Info:', userInfo);
+      
+      // Vous pouvez pré-remplir le formulaire ou enregistrer directement l'utilisateur
+      setEmail(userInfo.email);
+      setFullName(userInfo.name);
+      
+      // Enregistrer l'utilisateur dans votre base de données ou le connecter directement
+      // handleSocialSignUp(userInfo, 'google');
+      
+      Alert.alert('Succès', `Connecté avec Google en tant que ${userInfo.name}`);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des informations Google:', error);
+      Alert.alert('Erreur', 'Impossible de récupérer vos informations Google');
+      setIsLoading(false);
+    }
+  };
+
+  const fetchFacebookUserInfo = async (accessToken) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `https://graph.facebook.com/me?fields=id,name,email,picture&access_token=${accessToken}`
+      );
+      const userInfo = await response.json();
+      
+      // Traiter les informations de l'utilisateur
+      console.log('Facebook User Info:', userInfo);
+      
+      // Vous pouvez pré-remplir le formulaire ou enregistrer directement l'utilisateur
+      if (userInfo.email) setEmail(userInfo.email);
+      setFullName(userInfo.name);
+      
+      // Enregistrer l'utilisateur dans votre base de données ou le connecter directement
+      // handleSocialSignUp(userInfo, 'facebook');
+      
+      Alert.alert('Succès', `Connecté avec Facebook en tant que ${userInfo.name}`);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des informations Facebook:', error);
+      Alert.alert('Erreur', 'Impossible de récupérer vos informations Facebook');
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await googlePromptAsync();
+    } catch (error) {
+      console.error('Erreur de connexion Google:', error);
+      Alert.alert('Erreur', 'La connexion avec Google a échoué');
+    }
+  };
+
+  const handleFacebookSignIn = async () => {
+    try {
+      await fbPromptAsync();
+    } catch (error) {
+      console.error('Erreur de connexion Facebook:', error);
+      Alert.alert('Erreur', 'La connexion avec Facebook a échoué');
+    }
+  };
 
   const handleSignUp = () => {
-    // Logique d'inscription ici
+    // Logique d'inscription traditionnelle ici
     console.log('Inscription avec:', fullName, email, password);
     // Navigation après une inscription réussie
+    // router.push('/home');
+  };
+
+  // Fonction pour gérer l'inscription via réseaux sociaux
+  const handleSocialSignUp = (userInfo, provider) => {
+    // Logique pour enregistrer l'utilisateur dans votre système
+    console.log(`Inscription via ${provider}:`, userInfo);
+    // Une fois l'inscription terminée, rediriger vers la page d'accueil
     // router.push('/home');
   };
 
@@ -87,8 +209,11 @@ export default function SignUp() {
             style={styles.signUpButton}
             onPress={handleSignUp}
             activeOpacity={0.8}
+            disabled={isLoading}
           >
-            <Text style={styles.signUpButtonText}>Créer le compte</Text>
+            <Text style={styles.signUpButtonText}>
+              {isLoading ? 'Chargement...' : 'Créer le compte'}
+            </Text>
           </TouchableOpacity>
 
           <View style={styles.divider}>
@@ -98,10 +223,18 @@ export default function SignUp() {
           </View>
 
           <View style={styles.socialButtonsContainer}>
-            <TouchableOpacity style={styles.socialButton}>
+            <TouchableOpacity 
+              style={styles.socialButton} 
+              onPress={handleGoogleSignIn}
+              disabled={isLoading}
+            >
               <Ionicons name="logo-google" size={20} color="#DB4437" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton}>
+            <TouchableOpacity 
+              style={styles.socialButton}
+              onPress={handleFacebookSignIn}
+              disabled={isLoading}
+            >
               <Ionicons name="logo-facebook" size={20} color="#4267B2" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.socialButton}>
@@ -130,6 +263,7 @@ export default function SignUp() {
 }
 
 const styles = StyleSheet.create({
+  // Styles existants conservés
   scrollContainer: {
     flexGrow: 1,
   },
