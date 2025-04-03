@@ -1,6 +1,10 @@
 const Poubelle = require('../models/Poubelle');
 
 const PoubelleDAO = {
+    async getAllPoubelles() {
+        return await Poubelle.find();
+    },
+
     async createPoubelle(data) {
         const poubelle = new Poubelle(data);
         return await poubelle.save();
