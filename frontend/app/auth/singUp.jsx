@@ -129,7 +129,7 @@ export default function SignUp() {
     // Logique d'inscription traditionnelle ici
     console.log('Inscription avec:', fullName, email, password);
     // Navigation après une inscription réussie
-    // router.push('/home');
+     router.push('/(tabs)/home');
   };
 
   // Fonction pour gérer l'inscription via réseaux sociaux

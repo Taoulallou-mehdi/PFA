@@ -133,7 +133,7 @@ export default function SignIn() {
       console.log('Connexion avec:', email, password);
       setIsLoading(false);
       // Navigation après une connexion réussie
-      router.push('/home');
+      router.push('/(tabs)');
     }, 1000);
   };
 
