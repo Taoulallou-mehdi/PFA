@@ -59,7 +59,7 @@ Ce projet allie technologie mobile et intelligence artificielle pour améliorer 
 
 ## 8. Installation des Dépendances
 
-### Backend (prochennement)
+### Backend 
 
 1. Naviguez vers le répertoire backend :
     ```sh
@@ -83,7 +83,7 @@ Ce projet allie technologie mobile et intelligence artificielle pour améliorer 
 
 ## 9. Lancement de l'Application
 
-### Backend (prochennement)
+### Backend 
 
 1. Assurez-vous que les variables d'environnement sont correctement configurées dans un fichier `.env`.
 2. Démarrez le serveur backend :
@@ -103,12 +103,13 @@ Ce projet allie technologie mobile et intelligence artificielle pour améliorer 
 
 Créez un fichier `.env` dans les répertoires `backend` et `frontend` avec les variables suivantes :
 
-### Backend (prochennement)
+### Backend 
 
 ```
 PORT=5000
-MONGO_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/<database>?retryWrites=true&w=majority
-JWT_SECRET=your_jwt_secret_key
+MONGO_URI=mongodb+srv://etaoulallou:7NagnJgjZMsnlu5T@cluster0.2ndanyk.mongodb.net/db_GestionDechets?retryWrites=true&w=majority&appName=Cluster0
+JWT_SECRET=supersecretkey
+
 ```
 
 ### Frontend
