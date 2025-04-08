@@ -59,7 +59,7 @@ Ce projet allie technologie mobile et intelligence artificielle pour améliorer 
 
 ## 8. Installation des Dépendances
 
-### Backend (prochennement)
+### Backend 
 
 1. Naviguez vers le répertoire backend :
     ```sh
@@ -83,7 +83,7 @@ Ce projet allie technologie mobile et intelligence artificielle pour améliorer 
 
 ## 9. Lancement de l'Application
 
-### Backend (prochennement)
+### Backend 
 
 1. Assurez-vous que les variables d'environnement sont correctement configurées dans un fichier `.env`.
 2. Démarrez le serveur backend :
@@ -103,7 +103,7 @@ Ce projet allie technologie mobile et intelligence artificielle pour améliorer 
 
 Créez un fichier `.env` dans les répertoires `backend` et `frontend` avec les variables suivantes :
 
-### Backend (prochennement)
+### Backend 
 
 ```
 PORT=5000
