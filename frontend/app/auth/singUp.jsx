@@ -125,12 +125,38 @@ export default function SignUp() {
     }
   };
 
-  const handleSignUp = () => {
-    // Logique d'inscription traditionnelle ici
-    console.log('Inscription avec:', fullName, email, password);
-    // Navigation après une inscription réussie
-     router.push('/(tabs)/home');
-  };
+  const handleSignUp = async () => {
+    try {
+        // Send a POST request to the backend to register the user
+        const response = await fetch('http://192.168.1.104:5000/api/users/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: fullName,
+                email: email,
+                password: password,
+                role: 'citoyen', // Default role, can be adjusted as needed
+            }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Registration successful
+            console.log('User registered successfully:', data);
+            Alert.alert('Succès', 'Inscription réussie');
+            router.push('/(tabs)/home'); // Navigate to the home page
+        } else {
+            // Handle errors returned by the backend
+            console.error('Registration failed:', data.message);
+            Alert.alert('Erreur', data.message || 'Une erreur est survenue');
+        }
+    } catch (error) {
+        // Handle network or unexpected errors
+        console.error('Error during registration:', error);
+        Alert.alert('Erreur', 'Impossible de se connecter au serveur');
+    }
+};
 
   // Fonction pour gérer l'inscription via réseaux sociaux
   const handleSocialSignUp = (userInfo, provider) => {

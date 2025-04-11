@@ -120,22 +120,42 @@ export default function SignIn() {
     }
   };
 
-  const handleSignIn = () => {
-    // Logique de connexion traditionnelle ici
+  const handleSignIn = async () => {
     if (!email || !password) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
-      return;
+        Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+        return;
     }
-    
+
     setIsLoading(true);
-    // Simuler une connexion (remplacer par votre logique d'API)
-    setTimeout(() => {
-      console.log('Connexion avec:', email, password);
-      setIsLoading(false);
-      // Navigation après une connexion réussie
-      router.push('/(tabs)');
-    }, 1000);
-  };
+
+    try {
+        // Send a POST request to the backend to log in the user
+        const response = await fetch('http://192.168.1.104:5000/api/users/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Login successful
+            console.log('User logged in successfully:', data);
+            Alert.alert('Succès', 'Connexion réussie');
+            router.push('/(tabs)'); // Navigate to the main page
+        } else {
+            // Handle errors returned by the backend
+            console.error('Login failed:', data.message);
+            Alert.alert('Erreur', data.message || 'Une erreur est survenue');
+        }
+    } catch (error) {
+        // Handle network or unexpected errors
+        console.error('Error during login:', error);
+        Alert.alert('Erreur', 'Impossible de se connecter au serveur');
+    } finally {
+        setIsLoading(false);
+    }
+};
 
   // Fonction pour gérer la connexion via réseaux sociaux
   const handleSocialLogin = (userInfo, provider) => {
