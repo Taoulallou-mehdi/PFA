@@ -55,7 +55,10 @@ Développer une application mobile MERN qui intègre l'intelligence artificielle
 
 
 ## 7. Installation des Dépendances
-
+- On clone le project dans votre worspace et puis : 
+```sh
+git clone https://github.com/Taoulallou-mehdi/PFA.git
+```
 ### Backend 
 
 1. Naviguez vers le répertoire backend :
@@ -128,7 +131,7 @@ Wireless LAN adapter Wi-Fi:
 
    Connection-specific DNS Suffix  . :
    Link-local IPv6 Address . . . . . : ******************************
-   IPv4 Address. . . . . . . . . . . : **192.168.1.1**
+   IPv4 Address. . . . . . . . . . . : *192.168.1.1*
    Subnet Mask . . . . . . . . . . . : *************
    Default Gateway . . . . . . . . . : ***********
 ```
