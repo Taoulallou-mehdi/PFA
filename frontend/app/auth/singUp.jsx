@@ -81,7 +81,7 @@ export default function SignUp() {
       return;
     }
 
-   /* try {
+    try {
       setIsLoading(true);
       // Send a POST request to the backend to register the user
       const response = await fetch(`http://10.10.1.176:5000/api/users/register`, {
@@ -113,7 +113,7 @@ export default function SignUp() {
       Alert.alert('Error', 'Unable to connect to the server');
     } finally {
       setIsLoading(false);
-    }*/
+    }
   };
 
   // Function to handle registration via social networks
@@ -169,7 +169,7 @@ export default function SignUp() {
           </View>
 
           <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Please fill in the information below</Text>
+          <Text style={styles.subtitle}> fill in your information below</Text>
 
           <View style={styles.inputContainer}>
             <View style={styles.inputWrapper}>
