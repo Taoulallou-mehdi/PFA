@@ -53,12 +53,12 @@ Développer une application mobile MERN qui intègre l'intelligence artificielle
 | Phase 3              | Ajout de l’IA & Optimisation                 | 3 semaines |
 | Phase 4              | Tests & Validation                           | 3 semaines |
 
-## 7. Conclusion
 
-Ce projet allie technologie mobile et intelligence artificielle pour améliorer l’efficacité et la durabilité de la gestion des déchets urbains. En combinant une application mobile intuitive et des algorithmes d’optimisation, nous proposons une solution moderne, scalable et écologique.
-
-## 8. Installation des Dépendances
-
+## 7. Installation des Dépendances
+- On clone le project dans votre worspace avec : 
+```sh
+git clone https://github.com/Taoulallou-mehdi/PFA.git
+```
 ### Backend 
 
 1. Naviguez vers le répertoire backend :
@@ -81,7 +81,7 @@ Ce projet allie technologie mobile et intelligence artificielle pour améliorer 
     npm install
     ```
 
-## 9. Lancement de l'Application
+## 8. Lancement de l'Application
 
 ### Backend 
 
@@ -99,7 +99,7 @@ Ce projet allie technologie mobile et intelligence artificielle pour améliorer 
     npm start
     ```
 
-## 10. Variables d'Environnement
+## 9. Variables d'Environnement
 
 Créez un fichier `.env` dans les répertoires `backend` et `frontend` avec les variables suivantes :
 
@@ -108,12 +108,38 @@ Créez un fichier `.env` dans les répertoires `backend` et `frontend` avec les 
 ```
 PORT=5000
 MONGO_URI=mongodb+srv://etaoulallou:7NagnJgjZMsnlu5T@cluster0.2ndanyk.mongodb.net/db_GestionDechets?retryWrites=true&w=majority&appName=Cluster0
-JWT_SECRET=supersecretkey
+JWT_SECRET=6969
+GOOGLE_API_KEY=AIzaSyAKJ_vwMcRXiF-X5Ex_mqpR-loP8jGNHqY
 
 ```
 
 ### Frontend
 
 ```
-REACT_APP_API_URL=http://localhost:8081/api
+BACKEND_URL=http://YOUR_LOCAL_IP:5000
 ```
+#### Savoir votre ip local :
+1. ouvrer le terminal 
+2. entrer la commande :
+
+```sh
+ipconfig
+```
+3. vous chercher votre :
+```
+Wireless LAN adapter Wi-Fi:
+
+   Connection-specific DNS Suffix  . :
+   Link-local IPv6 Address . . . . . : ******************************
+   IPv4 Address. . . . . . . . . . . : *192.168.1.1*
+   Subnet Mask . . . . . . . . . . . : *************
+   Default Gateway . . . . . . . . . : ***********
+```
+
+## 10. Notes Importantes
+
+- Collaboration : Chaque membre de l'équipe doit configurer son propre fichier .env en fonction de son environnement local .
+
+## 11. Conclusion
+
+Ce projet allie technologie mobile et intelligence artificielle pour améliorer l’efficacité et la durabilité de la gestion des déchets urbains. En combinant une application mobile intuitive et des algorithmes d’optimisation, nous proposons une solution moderne, scalable et écologique.
