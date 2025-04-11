@@ -1,50 +1,57 @@
-import { View, Text, Image, TextInput, StyleSheet, TouchableOpacity, Pressable, StatusBar, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import React, { useState, useEffect } from 'react';
-import Colors from '../../constant/Colors';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import * as Facebook from 'expo-auth-session/providers/facebook';
-import * as AuthSession from 'expo-auth-session';
+import {
+  View,
+  Text,
+  Image,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  Pressable,
+  StatusBar,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+} from "react-native";
+import React, { useState, useEffect } from "react";
+import Colors from "../../constant/Colors";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+import * as Facebook from "expo-auth-session/providers/facebook";
 
-// Enable web authentication to work with redirects
+// Allow web authentication to complete
 WebBrowser.maybeCompleteAuthSession();
 
 export default function SignIn() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Google Sign-In configuration
-  // Replace these values with your own credentials
+  // Google Sign-In Configuration
   const [googleRequest, googleResponse, googlePromptAsync] = Google.useAuthRequest({
-    expoClientId: 'VOTRE_EXPO_CLIENT_ID',
-    iosClientId: 'VOTRE_IOS_CLIENT_ID',
-    androidClientId: 'VOTRE_ANDROID_CLIENT_ID',
-    webClientId: 'VOTRE_WEB_CLIENT_ID',
+    expoClientId: "YOUR_EXPO_CLIENT_ID",
+    iosClientId: "YOUR_IOS_CLIENT_ID",
+    androidClientId: "YOUR_ANDROID_CLIENT_ID",
+    webClientId: "YOUR_WEB_CLIENT_ID",
   });
 
-  // Configuration for Facebook Login
-  // Replace these values with your own credentials
+  // Facebook Login Configuration
   const [fbRequest, fbResponse, fbPromptAsync] = Facebook.useAuthRequest({
-    clientId: 'VOTRE_FACEBOOK_APP_ID',
+    clientId: "YOUR_FACEBOOK_APP_ID",
   });
 
   useEffect(() => {
-    if (googleResponse?.type === 'success') {
+    if (googleResponse?.type === "success") {
       const { authentication } = googleResponse;
-      // Fetch user information with the access token
       fetchGoogleUserInfo(authentication.accessToken);
     }
   }, [googleResponse]);
 
   useEffect(() => {
-    if (fbResponse?.type === 'success') {
+    if (fbResponse?.type === "success") {
       const { authentication } = fbResponse;
-      // Fetch user information with the access token
       fetchFacebookUserInfo(authentication.accessToken);
     }
   }, [fbResponse]);
@@ -52,28 +59,18 @@ export default function SignIn() {
   const fetchGoogleUserInfo = async (accessToken) => {
     try {
       setIsLoading(true);
-      const response = await fetch(
-        'https://www.googleapis.com/userinfo/v2/me',
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const response = await fetch("https://www.googleapis.com/userinfo/v2/me", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       const userInfo = await response.json();
-      
-      // Process user information
-      console.log('Google User Info:', userInfo);
-      
-      // Connect the user to your system
-      handleSocialLogin(userInfo, 'google');
-      
-      Alert.alert('Success', `Connected with Google as ${userInfo.name}`);
-      setIsLoading(false);
-      
-      // Redirect to tabs page after successful login
-      router.replace('/tabs');
+      console.log("Google User Info:", userInfo);
+      handleSocialLogin(userInfo, "google");
+      Alert.alert("Success", `Connected with Google as ${userInfo.name}`);
+      router.push("/home");
     } catch (error) {
-      console.error('Error retrieving Google information:', error);
-      Alert.alert('Error', 'Could not retrieve your Google information');
+      console.error("Error fetching Google user info:", error);
+      Alert.alert("Error", "Unable to fetch Google user info");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -85,21 +82,14 @@ export default function SignIn() {
         `https://graph.facebook.com/me?fields=id,name,email,picture&access_token=${accessToken}`
       );
       const userInfo = await response.json();
-      
-      // Process user information
-      console.log('Facebook User Info:', userInfo);
-      
-      // Connect the user to your system
-      handleSocialLogin(userInfo, 'facebook');
-      
-      Alert.alert('Success', `Connected with Facebook as ${userInfo.name}`);
-      setIsLoading(false);
-      
-      // Redirect to home page after successful login
-      router.replace('/tabs');
+      console.log("Facebook User Info:", userInfo);
+      handleSocialLogin(userInfo, "facebook");
+      Alert.alert("Success", `Connected with Facebook as ${userInfo.name}`);
+      router.push("/home");
     } catch (error) {
-      console.error('Error retrieving Facebook information:', error);
-      Alert.alert('Error', 'Could not retrieve your Facebook information');
+      console.error("Error fetching Facebook user info:", error);
+      Alert.alert("Error", "Unable to fetch Facebook user info");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -108,23 +98,21 @@ export default function SignIn() {
     try {
       await googlePromptAsync();
     } catch (error) {
-      console.error('Google login error:', error);
-      Alert.alert('Error', 'Google login failed');
+      console.error("Google Sign-In Error:", error);
+      Alert.alert("Error", "Google Sign-In failed");
     }
   };
-
 
   const handleFacebookSignIn = async () => {
     try {
       await fbPromptAsync();
     } catch (error) {
-      console.error('Facebook login error:', error);
-      Alert.alert('Error', 'Facebook login failed');
+      console.error("Facebook Sign-In Error:", error);
+      Alert.alert("Error", "Facebook Sign-In failed");
     }
   };
 
   const handleSignIn = async () => {
-    // Validate input fields
     if (!email || !password) {
       Alert.alert("Error", "Please fill in all fields");
       return;
@@ -133,85 +121,52 @@ export default function SignIn() {
     setIsLoading(true);
 
     try {
-      // Send a POST request to the backend to log in the user
-      const response = await fetch(`http://192.168.1.88:5000/api/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
+      const response = await fetch("http://192.168.1.88:5000/api/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-          // Login successful
-          console.log('User logged in successfully:', data);
-          Alert.alert('Success', 'Login successful');
-          router.replace('/tabs'); // Navigate to the tabs page
+        console.log("User logged in successfully:", data);
+        Alert.alert("Success", "Login successful");
+        router.push("/tabs/home");
       } else {
-          // Handle errors returned by the backend
-          console.error('Login failed:', data.message);
-          Alert.alert('Error', data.message || 'An error occurred');
+        console.error("Login failed:", data.message);
+        Alert.alert("Error", data.message || "An error occurred");
       }
     } catch (error) {
-        // Handle network or unexpected errors
-        console.error('Error during login:', error);
-        Alert.alert('Error', 'Unable to connect to the server');
+      console.error("Error during login:", error);
+      Alert.alert("Error", "Unable to connect to the server");
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
-  // Function to handle social login
   const handleSocialLogin = (userInfo, provider) => {
-    // Logic to connect the user to your system
     console.log(`Login via ${provider}:`, userInfo);
-    
-    // You might want to make a request to your MongoDB API here
-    // To check if the user exists or create them, then return a token
-    /*
-    fetch('your-api-url/auth/social-login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        provider,
-        providerId: userInfo.id,
-        email: userInfo.email,
-        name: userInfo.name,
-        // other useful information
-      }),
-    })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          // Store user token or data
-          // AsyncStorage.setItem('userToken', data.token);
-        }
-      })
-      .catch(error => {
-        console.error('Error in social login:', error);
-      });
-    */
+    // Implement logic to handle social login
   };
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
       <StatusBar barStyle="dark-content" backgroundColor={Colors.WHITE} />
-      
+
       <View style={styles.logoContainer}>
         <Image
-          source={require('./../../assets/images/istockphoto.jpg')}
+          source={require("./../../assets/images/istockphoto.jpg")}
           style={styles.logo}
           resizeMode="contain"
         />
       </View>
 
-      <Text style={styles.title}>Sign In</Text>
-      <Text style={styles.subtitle}>Please enter your login credentials</Text>
+      <Text style={styles.title}>Connexion</Text>
+      <Text style={styles.subtitle}>Veuillez entrer vos informations de connexion</Text>
 
       <View style={styles.inputContainer}>
         <View style={styles.inputWrapper}>
@@ -229,26 +184,26 @@ export default function SignIn() {
         <View style={styles.inputWrapper}>
           <Ionicons name="lock-closed-outline" size={20} color={Colors.GRAY} style={styles.inputIcon} />
           <TextInput
-            placeholder="Password"
+            placeholder="Mot de passe"
             style={[styles.textInput, styles.passwordInput]}
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
           />
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => setShowPassword(!showPassword)}
             style={styles.eyeIcon}
           >
-            <Ionicons 
-              name={showPassword ? "eye-outline" : "eye-off-outline"} 
-              size={20} 
-              color={Colors.GRAY} 
+            <Ionicons
+              name={showPassword ? "eye-outline" : "eye-off-outline"}
+              size={20}
+              color={Colors.GRAY}
             />
           </TouchableOpacity>
         </View>
-        
-        <Pressable style={styles.forgotPassword} onPress={() => router.push('/auth/resetPassword')}>
-          <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+
+        <Pressable style={styles.forgotPassword} onPress={() => router.push("/auth/resetPassword")}>
+          <Text style={styles.forgotPasswordText}>Mot de passe oublié?</Text>
         </Pressable>
       </View>
 
@@ -259,25 +214,25 @@ export default function SignIn() {
         disabled={isLoading}
       >
         <Text style={styles.signInButtonText}>
-          {isLoading ? 'Loading...' : 'Sign In'}
+          {isLoading ? "Chargement..." : "Se connecter"}
         </Text>
       </TouchableOpacity>
 
       <View style={styles.divider}>
         <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>or</Text>
+        <Text style={styles.dividerText}>ou</Text>
         <View style={styles.dividerLine} />
       </View>
 
       <View style={styles.socialButtonsContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.socialButton}
           onPress={handleGoogleSignIn}
           disabled={isLoading}
         >
           <Ionicons name="logo-google" size={20} color="#DB4437" />
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.socialButton}
           onPress={handleFacebookSignIn}
           disabled={isLoading}
@@ -290,9 +245,9 @@ export default function SignIn() {
       </View>
 
       <View style={styles.signUpContainer}>
-        <Text style={styles.signUpText}>Don't have an account?</Text>
-        <Pressable onPress={() => router.push('/auth/singUp')}>
-          <Text style={styles.signUpLink}>Sign up</Text>
+        <Text style={styles.signUpText}>Pas encore de compte?</Text>
+        <Pressable onPress={() => router.push("/auth/singUp")}>
+          <Text style={styles.signUpLink}>S'inscrire</Text>
         </Pressable>
       </View>
     </KeyboardAvoidingView>
@@ -303,12 +258,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.WHITE,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 24,
   },
   logoContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 30,
   },
   logo: {
@@ -318,29 +273,29 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
-    color: Colors.TEXT_DARK || '#000',
-    textAlign: 'center',
+    color: Colors.TEXT_DARK || "#000",
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 16,
-    color: Colors.TEXT_GRAY || '#666',
+    color: Colors.TEXT_GRAY || "#666",
     marginBottom: 30,
-    textAlign: 'center',
+    textAlign: "center",
   },
   inputContainer: {
-    width: '100%',
+    width: "100%",
     marginBottom: 20,
   },
   inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.INPUT_BG || '#f5f5f5',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.INPUT_BG || "#f5f5f5",
     borderRadius: 12,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: Colors.INPUT_BORDER || '#eaeaea',
+    borderColor: Colors.INPUT_BORDER || "#eaeaea",
     paddingHorizontal: 12,
   },
   inputIcon: {
@@ -350,31 +305,31 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 55,
     fontSize: 16,
-    color: Colors.TEXT_DARK || '#000',
+    color: Colors.TEXT_DARK || "#000",
   },
   passwordInput: {
     paddingRight: 40,
   },
   eyeIcon: {
-    position: 'absolute',
+    position: "absolute",
     right: 15,
   },
   forgotPassword: {
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     marginTop: 5,
   },
   forgotPasswordText: {
     color: Colors.GREEN,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   signInButton: {
-    width: '100%',
+    width: "100%",
     height: 55,
     backgroundColor: Colors.GREEN,
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 10,
     shadowColor: Colors.GREEN,
     shadowOffset: { width: 0, height: 4 },
@@ -385,27 +340,27 @@ const styles = StyleSheet.create({
   signInButtonText: {
     color: Colors.WHITE,
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    marginVertical: 25,
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    marginVertical: 30,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: Colors.DIVIDER || '#eaeaea',
+    backgroundColor: Colors.DIVIDER || "#eaeaea",
   },
   dividerText: {
     marginHorizontal: 15,
-    color: Colors.TEXT_GRAY || '#666',
+    color: Colors.TEXT_GRAY || "#666",
     fontSize: 14,
   },
   socialButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     marginBottom: 30,
   },
   socialButton: {
@@ -413,55 +368,30 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     backgroundColor: Colors.WHITE,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginHorizontal: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
     borderWidth: 1,
-    borderColor: Colors.BORDER_LIGHT || '#eaeaea',
-  },
-  googleButton: {
-    flexDirection: 'row',
-    width: '100%',
-    height: 55,
-    backgroundColor: Colors.WHITE,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  googleIcon: {
-    marginRight: 10,
-  },
-  googleButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.TEXT_DARK || '#000',
+    borderColor: Colors.BORDER_LIGHT || "#eaeaea",
   },
   signUpContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 10,
   },
   signUpText: {
     fontSize: 16,
-    color: Colors.TEXT_GRAY || '#666',
+    color: Colors.TEXT_GRAY || "#666",
   },
   signUpLink: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: Colors.GREEN,
     marginLeft: 5,
   },
