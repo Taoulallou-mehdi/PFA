@@ -1,10 +1,15 @@
-// server.js
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const dotenv = require('dotenv');
+const UserRoutes = require('./src/routes/UserRoutes');
+const PoubelleRoutes = require('./src/routes/PoubelleRoutes');
+const CollecteRoutes = require('./src/routes/CollecteRoutes');
+const TrajetRoutes = require('./src/routes/TrajetRoutes');
+const { errorHandler, notFoundHandler } = require('./src/middleware/errorHandler');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -12,7 +17,7 @@ const MONGO_URI = process.env.MONGO_URI;
 
 // Middlewares
 app.use(express.json());
-app.use(cors());
+app.use(cors({ origin: '*' }));
 app.use(helmet());
 app.use(morgan('dev'));
 
@@ -29,7 +34,15 @@ app.get('/', (req, res) => {
     res.send('API Gestion Déchets en cours de développement');
 });
 
+app.use('/api/users', UserRoutes);
+app.use('/api/poubelles', PoubelleRoutes);
+app.use('/api/collectes', CollecteRoutes);
+app.use('/api/trajets', TrajetRoutes);
+app.use(notFoundHandler);
+
+app.use(errorHandler);
+
 // Lancement du serveur
-app.listen(5000, '192.168.1.88', () => {
-  console.log('Server running on http://192.168.1.88:5000');
+app.listen(PORT, () => {
+    console.log(`Serveur démarré sur http://localhost:${PORT}`);
 });
