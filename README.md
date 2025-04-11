@@ -120,13 +120,13 @@ BACKEND_URL=http://YOUR_LOCAL_IP:5000
 ```
 #### Savoir votre ip local :
 1. ouvrer le terminal 
-2. entrer cette commande :
+2. entrer la commande :
 
 ```sh
 ipconfig
 ```
-3. vous chercher votre : 
-\`\`\`
+3. vous chercher votre :
+```
 Wireless LAN adapter Wi-Fi:
 
    Connection-specific DNS Suffix  . :
@@ -134,7 +134,7 @@ Wireless LAN adapter Wi-Fi:
    IPv4 Address. . . . . . . . . . . : *192.168.1.1*
    Subnet Mask . . . . . . . . . . . : *************
    Default Gateway . . . . . . . . . : ***********
-\`\`\`
+```
 
 ## 10. Notes Importantes
 
