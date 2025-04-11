@@ -115,10 +115,26 @@ GOOGLE_API_KEY=AIzaSyAKJ_vwMcRXiF-X5Ex_mqpR-loP8jGNHqY
 ```
 BACKEND_URL=http://YOUR_LOCAL_IP:5000
 ```
+#### Savoir votre ip local :
+1. ouvrer le terminal 
+2. entrer cette commande :
 
-# 10. Notes Importantes
+```
+ipconfig
+```
+3. vous chercher votre : 
+Wireless LAN adapter Wi-Fi:
 
-- Collaboration : Chaque membre de l'équipe doit configurer son propre fichier .env en fonction de son environnement local.
+   Connection-specific DNS Suffix  . :
+   Link-local IPv6 Address . . . . . : ******************************
+   IPv4 Address. . . . . . . . . . . : **192.168.1.1**
+   Subnet Mask . . . . . . . . . . . : *************
+   Default Gateway . . . . . . . . . : ***********
+
+
+## 10. Notes Importantes
+
+- Collaboration : Chaque membre de l'équipe doit configurer son propre fichier .env en fonction de son environnement local .
 
 ## 11. Conclusion
 
