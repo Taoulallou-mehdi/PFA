@@ -1,5 +1,5 @@
 import { View, Text, Image, TextInput, StyleSheet, TouchableOpacity, Pressable, StatusBar, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Colors from '../../constant/Colors';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,7 +8,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as Facebook from 'expo-auth-session/providers/facebook';
 import * as AuthSession from 'expo-auth-session';
 
-// Permet à l'authentification web de fonctionner en redirection
+// Enable web authentication to work with redirects
 WebBrowser.maybeCompleteAuthSession();
 
 export default function SignIn() {
@@ -18,8 +18,8 @@ export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Configuration pour Google Sign-In
-  // Remplacez ces valeurs par vos propres identifiants
+  // Google Sign-In configuration
+  // Replace these values with your own credentials
   const [googleRequest, googleResponse, googlePromptAsync] = Google.useAuthRequest({
     expoClientId: 'VOTRE_EXPO_CLIENT_ID',
     iosClientId: 'VOTRE_IOS_CLIENT_ID',
@@ -27,24 +27,24 @@ export default function SignIn() {
     webClientId: 'VOTRE_WEB_CLIENT_ID',
   });
 
-  // Configuration pour Facebook Login
-  // Remplacez ces valeurs par vos propres identifiants
+  // Configuration for Facebook Login
+  // Replace these values with your own credentials
   const [fbRequest, fbResponse, fbPromptAsync] = Facebook.useAuthRequest({
     clientId: 'VOTRE_FACEBOOK_APP_ID',
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (googleResponse?.type === 'success') {
       const { authentication } = googleResponse;
-      // Récupérer les informations utilisateur avec le token d'accès
+      // Fetch user information with the access token
       fetchGoogleUserInfo(authentication.accessToken);
     }
   }, [googleResponse]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (fbResponse?.type === 'success') {
       const { authentication } = fbResponse;
-      // Récupérer les informations utilisateur avec le token d'accès
+      // Fetch user information with the access token
       fetchFacebookUserInfo(authentication.accessToken);
     }
   }, [fbResponse]);
@@ -60,19 +60,20 @@ export default function SignIn() {
       );
       const userInfo = await response.json();
       
-      // Traiter les informations de l'utilisateur
+      // Process user information
       console.log('Google User Info:', userInfo);
       
-      // Connecter l'utilisateur dans votre système
+      // Connect the user to your system
       handleSocialLogin(userInfo, 'google');
       
-      Alert.alert('Succès', `Connecté avec Google en tant que ${userInfo.name}`);
+      Alert.alert('Success', `Connected with Google as ${userInfo.name}`);
       setIsLoading(false);
-      // Rediriger vers la page d'accueil après connexion réussie
-      router.push('/home');
+      
+      // Redirect to tabs page after successful login
+      router.replace('/tabs');
     } catch (error) {
-      console.error('Erreur lors de la récupération des informations Google:', error);
-      Alert.alert('Erreur', 'Impossible de récupérer vos informations Google');
+      console.error('Error retrieving Google information:', error);
+      Alert.alert('Error', 'Could not retrieve your Google information');
       setIsLoading(false);
     }
   };
@@ -85,19 +86,20 @@ export default function SignIn() {
       );
       const userInfo = await response.json();
       
-      // Traiter les informations de l'utilisateur
+      // Process user information
       console.log('Facebook User Info:', userInfo);
       
-      // Connecter l'utilisateur dans votre système
+      // Connect the user to your system
       handleSocialLogin(userInfo, 'facebook');
       
-      Alert.alert('Succès', `Connecté avec Facebook en tant que ${userInfo.name}`);
+      Alert.alert('Success', `Connected with Facebook as ${userInfo.name}`);
       setIsLoading(false);
-      // Rediriger vers la page d'accueil après connexion réussie
-      router.push('/home');
+      
+      // Redirect to home page after successful login
+      router.replace('/tabs');
     } catch (error) {
-      console.error('Erreur lors de la récupération des informations Facebook:', error);
-      Alert.alert('Erreur', 'Impossible de récupérer vos informations Facebook');
+      console.error('Error retrieving Facebook information:', error);
+      Alert.alert('Error', 'Could not retrieve your Facebook information');
       setIsLoading(false);
     }
   };
@@ -106,43 +108,91 @@ export default function SignIn() {
     try {
       await googlePromptAsync();
     } catch (error) {
-      console.error('Erreur de connexion Google:', error);
-      Alert.alert('Erreur', 'La connexion avec Google a échoué');
+      console.error('Google login error:', error);
+      Alert.alert('Error', 'Google login failed');
     }
   };
+
 
   const handleFacebookSignIn = async () => {
     try {
       await fbPromptAsync();
     } catch (error) {
-      console.error('Erreur de connexion Facebook:', error);
-      Alert.alert('Erreur', 'La connexion avec Facebook a échoué');
+      console.error('Facebook login error:', error);
+      Alert.alert('Error', 'Facebook login failed');
     }
   };
 
-  const handleSignIn = () => {
-    // Logique de connexion traditionnelle ici
+  const handleSignIn = async () => {
+    // Validate input fields
     if (!email || !password) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+      Alert.alert("Error", "Please fill in all fields");
       return;
     }
-    
+
     setIsLoading(true);
-    // Simuler une connexion (remplacer par votre logique d'API)
-    setTimeout(() => {
-      console.log('Connexion avec:', email, password);
-      setIsLoading(false);
-      // Navigation après une connexion réussie
-      router.push('/(tabs)');
-    }, 1000);
+
+    try {
+      // Send a POST request to the backend to log in the user
+      const response = await fetch(`http://192.168.1.88:5000/api/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+          // Login successful
+          console.log('User logged in successfully:', data);
+          Alert.alert('Success', 'Login successful');
+          router.replace('/tabs'); // Navigate to the tabs page
+      } else {
+          // Handle errors returned by the backend
+          console.error('Login failed:', data.message);
+          Alert.alert('Error', data.message || 'An error occurred');
+      }
+    } catch (error) {
+        // Handle network or unexpected errors
+        console.error('Error during login:', error);
+        Alert.alert('Error', 'Unable to connect to the server');
+    } finally {
+        setIsLoading(false);
+    }
   };
 
-  // Fonction pour gérer la connexion via réseaux sociaux
+  // Function to handle social login
   const handleSocialLogin = (userInfo, provider) => {
-    // Logique pour connecter l'utilisateur dans votre système
-    console.log(`Connexion via ${provider}:`, userInfo);
-    // Vous devrez implémenter la logique de vérification/création de compte
-    // et de génération de token d'authentification
+    // Logic to connect the user to your system
+    console.log(`Login via ${provider}:`, userInfo);
+    
+    // You might want to make a request to your MongoDB API here
+    // To check if the user exists or create them, then return a token
+    /*
+    fetch('your-api-url/auth/social-login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        provider,
+        providerId: userInfo.id,
+        email: userInfo.email,
+        name: userInfo.name,
+        // other useful information
+      }),
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Store user token or data
+          // AsyncStorage.setItem('userToken', data.token);
+        }
+      })
+      .catch(error => {
+        console.error('Error in social login:', error);
+      });
+    */
   };
 
   return (
@@ -160,8 +210,8 @@ export default function SignIn() {
         />
       </View>
 
-      <Text style={styles.title}>Connexion</Text>
-      <Text style={styles.subtitle}>Veuillez entrer vos informations de connexion</Text>
+      <Text style={styles.title}>Sign In</Text>
+      <Text style={styles.subtitle}>Please enter your login credentials</Text>
 
       <View style={styles.inputContainer}>
         <View style={styles.inputWrapper}>
@@ -179,7 +229,7 @@ export default function SignIn() {
         <View style={styles.inputWrapper}>
           <Ionicons name="lock-closed-outline" size={20} color={Colors.GRAY} style={styles.inputIcon} />
           <TextInput
-            placeholder="Mot de passe"
+            placeholder="Password"
             style={[styles.textInput, styles.passwordInput]}
             value={password}
             onChangeText={setPassword}
@@ -198,7 +248,7 @@ export default function SignIn() {
         </View>
         
         <Pressable style={styles.forgotPassword} onPress={() => router.push('/auth/resetPassword')}>
-          <Text style={styles.forgotPasswordText}>Mot de passe oublié?</Text>
+          <Text style={styles.forgotPasswordText}>Forgot password?</Text>
         </Pressable>
       </View>
 
@@ -209,13 +259,13 @@ export default function SignIn() {
         disabled={isLoading}
       >
         <Text style={styles.signInButtonText}>
-          {isLoading ? 'Chargement...' : 'Se connecter'}
+          {isLoading ? 'Loading...' : 'Sign In'}
         </Text>
       </TouchableOpacity>
 
       <View style={styles.divider}>
         <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>ou</Text>
+        <Text style={styles.dividerText}>or</Text>
         <View style={styles.dividerLine} />
       </View>
 
@@ -240,9 +290,9 @@ export default function SignIn() {
       </View>
 
       <View style={styles.signUpContainer}>
-        <Text style={styles.signUpText}>Pas encore de compte?</Text>
+        <Text style={styles.signUpText}>Don't have an account?</Text>
         <Pressable onPress={() => router.push('/auth/singUp')}>
-          <Text style={styles.signUpLink}>S'inscrire</Text>
+          <Text style={styles.signUpLink}>Sign up</Text>
         </Pressable>
       </View>
     </KeyboardAvoidingView>
@@ -341,7 +391,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     width: '100%',
-    marginVertical: 30,
+    marginVertical: 25,
   },
   dividerLine: {
     flex: 1,
@@ -373,6 +423,31 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: Colors.BORDER_LIGHT || '#eaeaea',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    width: '100%',
+    height: 55,
+    backgroundColor: Colors.WHITE,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  googleIcon: {
+    marginRight: 10,
+  },
+  googleButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.TEXT_DARK || '#000',
   },
   signUpContainer: {
     flexDirection: 'row',

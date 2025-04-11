@@ -1,26 +1,25 @@
 import { View, Text, Image, TextInput, StyleSheet, TouchableOpacity, Pressable, StatusBar, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Colors from '../../constant/Colors';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
-import * as Facebook from 'expo-auth-session/providers/facebook';
-import * as AuthSession from 'expo-auth-session';
 
-// Permet à l'authentification web de fonctionner en redirection
+// Enable web authentication to work with redirects
 WebBrowser.maybeCompleteAuthSession();
 
 export default function SignUp() {
   const router = useRouter();
+  
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Configuration pour Google Sign-In
-  // Remplacez ces valeurs par vos propres identifiants
+  // Google Sign-In configuration
+  // Replace these values with your own credentials
   const [googleRequest, googleResponse, googlePromptAsync] = Google.useAuthRequest({
     expoClientId: 'VOTRE_EXPO_CLIENT_ID',
     iosClientId: 'VOTRE_IOS_CLIENT_ID',
@@ -28,27 +27,13 @@ export default function SignUp() {
     webClientId: 'VOTRE_WEB_CLIENT_ID',
   });
 
-  // Configuration pour Facebook Login
-  // Remplacez ces valeurs par vos propres identifiants
-  const [fbRequest, fbResponse, fbPromptAsync] = Facebook.useAuthRequest({
-    clientId: 'VOTRE_FACEBOOK_APP_ID',
-  });
-
-  React.useEffect(() => {
+  useEffect(() => {
     if (googleResponse?.type === 'success') {
       const { authentication } = googleResponse;
-      // Récupérer les informations utilisateur avec le token d'accès
+      // Fetch user information with the access token
       fetchGoogleUserInfo(authentication.accessToken);
     }
   }, [googleResponse]);
-
-  React.useEffect(() => {
-    if (fbResponse?.type === 'success') {
-      const { authentication } = fbResponse;
-      // Récupérer les informations utilisateur avec le token d'accès
-      fetchFacebookUserInfo(authentication.accessToken);
-    }
-  }, [fbResponse]);
 
   const fetchGoogleUserInfo = async (accessToken) => {
     try {
@@ -61,48 +46,21 @@ export default function SignUp() {
       );
       const userInfo = await response.json();
       
-      // Traiter les informations de l'utilisateur
+      // Process user information
       console.log('Google User Info:', userInfo);
       
-      // Vous pouvez pré-remplir le formulaire ou enregistrer directement l'utilisateur
+      // You can pre-fill the form or register the user directly
       setEmail(userInfo.email);
       setFullName(userInfo.name);
       
-      // Enregistrer l'utilisateur dans votre base de données ou le connecter directement
-      // handleSocialSignUp(userInfo, 'google');
+      // Register the user in your database or log them in directly
+      handleSocialSignUp(userInfo, 'google');
       
-      Alert.alert('Succès', `Connecté avec Google en tant que ${userInfo.name}`);
+      Alert.alert('Success', `Connected with Google as ${userInfo.name}`);
       setIsLoading(false);
     } catch (error) {
-      console.error('Erreur lors de la récupération des informations Google:', error);
-      Alert.alert('Erreur', 'Impossible de récupérer vos informations Google');
-      setIsLoading(false);
-    }
-  };
-
-  const fetchFacebookUserInfo = async (accessToken) => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(
-        `https://graph.facebook.com/me?fields=id,name,email,picture&access_token=${accessToken}`
-      );
-      const userInfo = await response.json();
-      
-      // Traiter les informations de l'utilisateur
-      console.log('Facebook User Info:', userInfo);
-      
-      // Vous pouvez pré-remplir le formulaire ou enregistrer directement l'utilisateur
-      if (userInfo.email) setEmail(userInfo.email);
-      setFullName(userInfo.name);
-      
-      // Enregistrer l'utilisateur dans votre base de données ou le connecter directement
-      // handleSocialSignUp(userInfo, 'facebook');
-      
-      Alert.alert('Succès', `Connecté avec Facebook en tant que ${userInfo.name}`);
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Erreur lors de la récupération des informations Facebook:', error);
-      Alert.alert('Erreur', 'Impossible de récupérer vos informations Facebook');
+      console.error('Error retrieving Google information:', error);
+      Alert.alert('Error', 'Could not retrieve your Google information');
       setIsLoading(false);
     }
   };
@@ -111,33 +69,86 @@ export default function SignUp() {
     try {
       await googlePromptAsync();
     } catch (error) {
-      console.error('Erreur de connexion Google:', error);
-      Alert.alert('Erreur', 'La connexion avec Google a échoué');
+      console.error('Google login error:', error);
+      Alert.alert('Error', 'Google login failed');
     }
   };
 
-  const handleFacebookSignIn = async () => {
-    try {
-      await fbPromptAsync();
+  const handleSignUp = async () => {
+    // Validate input fields
+    if (!email || !password || !fullName) {
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
+   /* try {
+      setIsLoading(true);
+      // Send a POST request to the backend to register the user
+      const response = await fetch(`http://10.10.1.176:5000/api/users/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+              name: fullName,
+              email: email,
+              password: password,
+              role: 'citoyen', // Default role, can be adjusted as needed
+          }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+          // Registration successful
+          console.log('User registered successfully:', data);
+          Alert.alert('Success', 'Registration successful');
+          router.push('/tabs/home'); // Navigate to the home page
+      } else {
+          // Handle errors returned by the backend
+          console.error('Registration failed:', data.message);
+          Alert.alert('Error', data.message || 'An error occurred');
+      }
     } catch (error) {
-      console.error('Erreur de connexion Facebook:', error);
-      Alert.alert('Erreur', 'La connexion avec Facebook a échoué');
-    }
+      // Handle network or unexpected errors
+      console.error('Error during registration:', error);
+      Alert.alert('Error', 'Unable to connect to the server');
+    } finally {
+      setIsLoading(false);
+    }*/
   };
 
-  const handleSignUp = () => {
-    // Logique d'inscription traditionnelle ici
-    console.log('Inscription avec:', fullName, email, password);
-    // Navigation après une inscription réussie
-     router.push('/(tabs)/home');
-  };
-
-  // Fonction pour gérer l'inscription via réseaux sociaux
+  // Function to handle registration via social networks
   const handleSocialSignUp = (userInfo, provider) => {
-    // Logique pour enregistrer l'utilisateur dans votre système
-    console.log(`Inscription via ${provider}:`, userInfo);
-    // Une fois l'inscription terminée, rediriger vers la page d'accueil
-    // router.push('/home');
+    // Logic to register the user in your system
+    console.log(`Registration via ${provider}:`, userInfo);
+    
+    // You might want to make a request to your API here
+    // To register the user and create their profile
+    /*
+    fetch('your-api-url/auth/social-signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        provider,
+        providerId: userInfo.id,
+        email: userInfo.email,
+        name: userInfo.name,
+        // other useful information
+      }),
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Store user token or data
+          // AsyncStorage.setItem('userToken', data.token);
+          router.push('/(tabs)/home');
+        }
+      })
+      .catch(error => {
+        console.error('Error in social registration:', error);
+      });
+    */
   };
 
   return (
@@ -157,14 +168,14 @@ export default function SignUp() {
             />
           </View>
 
-          <Text style={styles.title}>Créer un compte</Text>
-          <Text style={styles.subtitle}>Veuillez remplir les informations ci-dessous</Text>
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Please fill in the information below</Text>
 
           <View style={styles.inputContainer}>
             <View style={styles.inputWrapper}>
               <Ionicons name="person-outline" size={20} color={Colors.GRAY} style={styles.inputIcon} />
               <TextInput
-                placeholder="Nom complet"
+                placeholder="Full Name"
                 style={styles.textInput}
                 value={fullName}
                 onChangeText={setFullName}
@@ -186,7 +197,7 @@ export default function SignUp() {
             <View style={styles.inputWrapper}>
               <Ionicons name="lock-closed-outline" size={20} color={Colors.GRAY} style={styles.inputIcon} />
               <TextInput
-                placeholder="Mot de passe"
+                placeholder="Password"
                 style={[styles.textInput, styles.passwordInput]}
                 value={password}
                 onChangeText={setPassword}
@@ -212,48 +223,37 @@ export default function SignUp() {
             disabled={isLoading}
           >
             <Text style={styles.signUpButtonText}>
-              {isLoading ? 'Chargement...' : 'Créer le compte'}
+              {isLoading ? 'Loading...' : 'Create Account'}
             </Text>
           </TouchableOpacity>
 
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>ou s'inscrire avec</Text>
+            <Text style={styles.dividerText}>or sign up with</Text>
             <View style={styles.dividerLine} />
           </View>
 
-          <View style={styles.socialButtonsContainer}>
-            <TouchableOpacity 
-              style={styles.socialButton} 
-              onPress={handleGoogleSignIn}
-              disabled={isLoading}
-            >
-              <Ionicons name="logo-google" size={20} color="#DB4437" />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.socialButton}
-              onPress={handleFacebookSignIn}
-              disabled={isLoading}
-            >
-              <Ionicons name="logo-facebook" size={20} color="#4267B2" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton}>
-              <Ionicons name="logo-apple" size={20} color="#000000" />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity 
+            style={styles.googleButton}
+            onPress={handleGoogleSignIn}
+            disabled={isLoading}
+          >
+            <Ionicons name="logo-google" size={20} color="#DB4437" style={styles.googleIcon} />
+            <Text style={styles.googleButtonText}>Sign up with Google</Text>
+          </TouchableOpacity>
 
           <View style={styles.signInContainer}>
-            <Text style={styles.signInText}>Vous avez déjà un compte?</Text>
+            <Text style={styles.signInText}>Already have an account?</Text>
             <Pressable onPress={() => router.push('/auth/singin')}>
-              <Text style={styles.signInLink}>Connexion</Text>
+              <Text style={styles.signInLink}>Sign in</Text>
             </Pressable>
           </View>
           
           <View style={styles.termsContainer}>
             <Text style={styles.termsText}>
-              En vous inscrivant, vous acceptez nos{' '}
-              <Text style={styles.termsLink}>conditions d'utilisation</Text> et notre{' '}
-              <Text style={styles.termsLink}>politique de confidentialité</Text>
+              By signing up, you agree to our{' '}
+              <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
+              <Text style={styles.termsLink}>Privacy Policy</Text>
             </Text>
           </View>
         </View>
@@ -263,7 +263,6 @@ export default function SignUp() {
 }
 
 const styles = StyleSheet.create({
-  // Styles existants conservés
   scrollContainer: {
     flexGrow: 1,
   },
@@ -363,26 +362,30 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_GRAY || '#666',
     fontSize: 14,
   },
-  socialButtonsContainer: {
+  googleButton: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 25,
-  },
-  socialButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: '100%',
+    height: 55,
     backgroundColor: Colors.WHITE,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginHorizontal: 10,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#ddd',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
-    borderWidth: 1,
-    borderColor: Colors.BORDER_LIGHT || '#eaeaea',
+  },
+  googleIcon: {
+    marginRight: 10,
+  },
+  googleButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.TEXT_DARK || '#000',
   },
   signInContainer: {
     flexDirection: 'row',
