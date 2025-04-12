@@ -8,56 +8,73 @@ import {
   SafeAreaView,
   Alert,
   ScrollView,
-  TextInput,
   ActivityIndicator,
-  Platform
+  Platform,
 } from 'react-native';
-import { Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
+
+// Import Camera conditionally
+let Camera;
+try {
+  Camera = require('expo-camera').Camera;
+} catch (error) {
+  console.log('Camera module not available');
+}
 
 export default function ReportWaste({ navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
   const [cameraRef, setCameraRef] = useState(null);
   const [image, setImage] = useState(null);
-  const [wasteType, setWasteType] = useState('');
-  const [description, setDescription] = useState('');
   const [location, setLocation] = useState(null);
   const [address, setAddress] = useState('Detecting location...');
   const [loading, setLoading] = useState(false);
-  const [aiAnalysis, setAiAnalysis] = useState(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [cameraAvailable, setCameraAvailable] = useState(!!Camera);
 
-  // Request camera and location permissions
+  // Request camera and location permissions if camera is available
   useEffect(() => {
-    (async () => {
-      const cameraStatus = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(cameraStatus.status === 'granted');
-    })();
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      const locationStatus = await Location.requestForegroundPermissionsAsync();
-      if (locationStatus.status === 'granted') {
-        const currentLocation = await Location.getCurrentPositionAsync({});
-        setLocation(currentLocation);
-        
-        // Get readable address
+    if (cameraAvailable) {
+      (async () => {
         try {
-          const geocode = await Location.reverseGeocodeAsync({
-            latitude: currentLocation.coords.latitude,
-            longitude: currentLocation.coords.longitude,
-          });
-          
-          if (geocode.length > 0) {
-            const loc = geocode[0];
-            setAddress(`${loc.street || ''} ${loc.city || ''}, ${loc.region || ''}`);
-          }
+          const cameraStatus = await Camera.requestCameraPermissionsAsync();
+          setHasPermission(cameraStatus.status === 'granted');
         } catch (error) {
-          setAddress('Location detected (coordinates only)');
+          console.log('Error requesting camera permissions:', error);
+          setCameraAvailable(false);
         }
+      })();
+    }
+  }, [cameraAvailable]);
+
+  // Request location permissions
+  useEffect(() => {
+    (async () => {
+      try {
+        const locationStatus = await Location.requestForegroundPermissionsAsync();
+        if (locationStatus.status === 'granted') {
+          const currentLocation = await Location.getCurrentPositionAsync({});
+          setLocation(currentLocation);
+          
+          // Get readable address
+          try {
+            const geocode = await Location.reverseGeocodeAsync({
+              latitude: currentLocation.coords.latitude,
+              longitude: currentLocation.coords.longitude,
+            });
+            
+            if (geocode.length > 0) {
+              const loc = geocode[0];
+              setAddress(`${loc.street || ''} ${loc.city || ''}, ${loc.region || ''}`);
+            }
+          } catch (error) {
+            setAddress('Location detected (coordinates only)');
+          }
+        }
+      } catch (error) {
+        console.log('Error getting location:', error);
+        setAddress('Location not available');
       }
     })();
   }, []);
@@ -68,7 +85,6 @@ export default function ReportWaste({ navigation }) {
         const photo = await cameraRef.takePictureAsync();
         setImage(photo.uri); // Save the image URI
         setShowCamera(false); // Hide the camera view
-        analyzeWasteImage(photo.uri); // Analyze the image
       } catch (error) {
         Alert.alert('Error', 'Failed to take picture');
       }
@@ -76,37 +92,20 @@ export default function ReportWaste({ navigation }) {
   };
 
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
-      analyzeWasteImage(result.assets[0].uri);
-    }
-  };
-  
-  // Mock AI analysis function (in a real app, this would call your AI service)
-  const analyzeWasteImage = async (imageUri) => {
-    setLoading(true);
-    
-    // Simulate API call delay
-    setTimeout(() => {
-      // Mock AI response
-      setAiAnalysis({
-        isWaste: true,
-        wasteTypes: ['Plastic', 'General'],
-        confidenceScore: 0.94,
-        estimatedSize: 'Medium',
-        environmentalImpact: 'Moderate'
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
       });
-      
-      setWasteType('Plastic');
-      setLoading(false);
-    }, 2000);
+
+      if (!result.canceled) {
+        setImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to pick image from gallery');
+    }
   };
 
   const handleSubmit = () => {
@@ -127,20 +126,14 @@ export default function ReportWaste({ navigation }) {
       setLoading(false);
       Alert.alert(
         'Report Submitted!',
-        'You earned 25 points for your contribution!',
+        'Thank you for your contribution! The waste collection team has been notified.',
         [
-          { 
-            text: 'View My Points', 
-            onPress: () => navigation.navigate('Rewards') 
-          },
           { 
             text: 'OK', 
             onPress: () => {
               // Reset form
               setImage(null);
-              setWasteType('');
-              setDescription('');
-              setAiAnalysis(null);
+              navigation.navigate('Home');
             } 
           },
         ]
@@ -148,39 +141,30 @@ export default function ReportWaste({ navigation }) {
     }, 1500);
   };
 
-  if (hasPermission === null) {
-    return <View style={styles.container}><Text>Requesting permissions...</Text></View>;
-  }
-  
-  if (hasPermission === false) {
+  if (!cameraAvailable && hasPermission === null) {
     return (
       <View style={styles.container}>
-        <Text>No access to camera</Text>
-        <Text>Please enable camera permissions in your phone settings.</Text>
+        <Text style={styles.errorText}>Camera module not available</Text>
+        <Text>You can still upload images from your gallery</Text>
+        <TouchableOpacity 
+          style={[styles.submitButton, {marginTop: 20}]}
+          onPress={() => setCameraAvailable(false)}>
+          <Text style={styles.submitButtonText}>Continue without camera</Text>
+        </TouchableOpacity>
       </View>
     );
   }
+  
+  
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Report Waste</Text>
-        <View style={styles.pointsBadge}>
-          <Text style={styles.pointsText}>0.00</Text>
-        </View>
-      </View>
-      
       <ScrollView style={styles.content}>
-        {showCamera ? (
+        {showCamera && cameraAvailable ? (
           <View style={styles.cameraContainer}>
             <Camera
               style={styles.camera}
-              type={Camera.Constants.Type.back}
+              type={Camera.Constants?.Type?.back || 'back'}
               ref={(ref) => setCameraRef(ref)}
             >
               <View style={styles.cameraControls}>
@@ -188,6 +172,12 @@ export default function ReportWaste({ navigation }) {
                   <View style={styles.captureBtnOuter}>
                     <View style={styles.captureBtnInner} />
                   </View>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.cancelButton}
+                  onPress={() => setShowCamera(false)}>
+                  <Text style={styles.cancelText}>Cancel</Text>
                 </TouchableOpacity>
               </View>
             </Camera>
@@ -203,30 +193,16 @@ export default function ReportWaste({ navigation }) {
                     onPress={() => setImage(null)}>
                     <Text style={styles.retakeText}>Retake</Text>
                   </TouchableOpacity>
-                  
-                  {aiAnalysis && (
-                    <View style={styles.aiResultOverlay}>
-                      <MaterialIcons name="check-circle" size={24} color="#4CAF50" />
-                      <Text style={styles.aiResultText}>Waste Detected</Text>
-                    </View>
-                  )}
                 </View>
               ) : (
                 <View style={styles.uploadSection}>
-                  <Text style={styles.uploadTitle}>Upload or Take a Photo</Text>
+                  <Text style={styles.uploadTitle}>Report Waste Collection</Text>
                   <Text style={styles.uploadSubtitle}>
-                    Our AI will analyze the waste and help categorize it
+                    Upload a photo of waste that needs to be collected
                   </Text>
                   
                   <View style={styles.uploadButtons}>
-                    <TouchableOpacity 
-                      style={styles.uploadOption}
-                      onPress={() => setShowCamera(true)}>
-                      <View style={styles.uploadIconBg}>
-                        <Ionicons name="camera" size={28} color="#4CAF50" />
-                      </View>
-                      <Text style={styles.uploadButtonText}>Camera</Text>
-                    </TouchableOpacity>
+                    
                     
                     <TouchableOpacity 
                       style={styles.uploadOption}
@@ -246,77 +222,24 @@ export default function ReportWaste({ navigation }) {
                 {loading ? (
                   <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#4CAF50" />
-                    <Text style={styles.loadingText}>Analyzing waste image...</Text>
+                    <Text style={styles.loadingText}>Submitting report...</Text>
                   </View>
                 ) : (
-                  <>
-                    {aiAnalysis && (
-                      <View style={styles.aiAnalysisContainer}>
-                        <Text style={styles.sectionTitle}>AI Analysis Results</Text>
-                        
-                        <View style={styles.aiResultsGrid}>
-                          <View style={styles.aiResultItem}>
-                            <Text style={styles.aiResultLabel}>Waste Type</Text>
-                            <Text style={styles.aiResultValue}>{aiAnalysis.wasteTypes.join(', ')}</Text>
-                          </View>
-                          
-                          <View style={styles.aiResultItem}>
-                            <Text style={styles.aiResultLabel}>Confidence</Text>
-                            <Text style={styles.aiResultValue}>{aiAnalysis.confidenceScore * 100}%</Text>
-                          </View>
-                          
-                          <View style={styles.aiResultItem}>
-                            <Text style={styles.aiResultLabel}>Size</Text>
-                            <Text style={styles.aiResultValue}>{aiAnalysis.estimatedSize}</Text>
-                          </View>
-                          
-                          <View style={styles.aiResultItem}>
-                            <Text style={styles.aiResultLabel}>Impact</Text>
-                            <Text style={styles.aiResultValue}>{aiAnalysis.environmentalImpact}</Text>
-                          </View>
-                        </View>
+                  <View style={styles.formSection}>
+                    <Text style={styles.sectionTitle}>Location</Text>
+                    <View style={styles.locationContainer}>
+                      <View style={styles.locationIconContainer}>
+                        <Ionicons name="location" size={24} color="#4CAF50" />
                       </View>
-                    )}
-                    
-                    <View style={styles.formSection}>
-                      <Text style={styles.sectionTitle}>Waste Details</Text>
-                      
-                      <Text style={styles.inputLabel}>Waste Type</Text>
-                      <View style={styles.selectContainer}>
-                        <TextInput
-                          style={styles.input}
-                          value={wasteType}
-                          onChangeText={setWasteType}
-                          placeholder="Select waste type"
-                        />
-                        <MaterialIcons name="arrow-drop-down" size={24} color="#666" />
-                      </View>
-                      
-                      <Text style={styles.inputLabel}>Description (Optional)</Text>
-                      <TextInput
-                        style={[styles.input, styles.textArea]}
-                        value={description}
-                        onChangeText={setDescription}
-                        placeholder="Add more details about the waste"
-                        multiline
-                        numberOfLines={4}
-                      />
-                      
-                      <Text style={styles.sectionTitle}>Location</Text>
-                      <View style={styles.locationContainer}>
-                        <View style={styles.locationIconContainer}>
-                          <Ionicons name="location" size={24} color="#4CAF50" />
-                        </View>
-                        <Text style={styles.locationText}>{address}</Text>
-                      </View>
-                      
-                      <TouchableOpacity 
-                        style={styles.submitButton}
-                        onPress={handleSubmit}>
-                        <Text style={styles.submitButtonText}>Submit Report</Text>
-                      </TouchableOpacity>
+                      <Text style={styles.locationText}>{address}</Text>
                     </View>
-                  </>
+                    
+                    <TouchableOpacity 
+                      style={styles.submitButton}
+                      onPress={handleSubmit}>
+                      <Text style={styles.submitButtonText}>Submit Report</Text>
+                    </TouchableOpacity>
+                  </View>
                 )}
               </>
             )}
@@ -331,36 +254,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-  },
-  header: {
-    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eeeeee',
-    backgroundColor: '#ffffff',
+    padding: 20,
   },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontWeight: 'bold',
+  errorText: {
     fontSize: 18,
-    color: '#333',
-  },
-  pointsBadge: {
-    backgroundColor: '#e8f5e9',
-    borderRadius: 16,
-    padding: 6,
-    minWidth: 32,
-    alignItems: 'center',
-  },
-  pointsText: {
-    color: '#4CAF50',
     fontWeight: 'bold',
-    fontSize: 12,
+    marginBottom: 10,
+    color: '#f44336',
   },
   content: {
     flex: 1,
@@ -392,22 +294,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
   },
-  aiResultOverlay: {
-    position: 'absolute',
-    top: 16,
-    left: 16,
-    backgroundColor: 'rgba(255,255,255,0.9)',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  aiResultText: {
-    color: '#4CAF50',
-    fontWeight: 'bold',
-    marginLeft: 4,
-  },
   uploadSection: {
     backgroundColor: '#f8f8f8',
     borderRadius: 12,
@@ -435,6 +321,7 @@ const styles = StyleSheet.create({
   },
   uploadOption: {
     alignItems: 'center',
+    marginHorizontal: 20,
   },
   uploadIconBg: {
     width: 60,
@@ -496,19 +383,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
   },
-  aiIndicator: {
-    position: 'absolute',
-    top: 16,
-    left: 16,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 16,
-  },
-  aiText: {
-    color: '#fff',
-    fontSize: 12,
-  },
   loadingContainer: {
     padding: 24,
     alignItems: 'center',
@@ -518,64 +392,14 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     fontWeight: '500',
   },
-  aiAnalysisContainer: {
+  formSection: {
     padding: 16,
-    backgroundColor: '#f8f8f8',
-    margin: 16,
-    borderRadius: 12,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 16,
-  },
-  aiResultsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  aiResultItem: {
-    width: '48%',
-    backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  aiResultLabel: {
-    color: '#666',
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  aiResultValue: {
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  formSection: {
-    padding: 16,
-  },
-  inputLabel: {
-    color: '#666',
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 16,
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: 'top',
-  },
-  selectContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    alignItems: 'center',
   },
   locationContainer: {
     flexDirection: 'row',
