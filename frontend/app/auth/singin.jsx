@@ -18,6 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import * as Facebook from "expo-auth-session/providers/facebook";
+import config from '../../config.js';
 
 // Allow web authentication to complete
 WebBrowser.maybeCompleteAuthSession();
@@ -114,36 +115,39 @@ export default function SignIn() {
 
   const handleSignIn = async () => {
     if (!email || !password) {
-      Alert.alert("Error", "Please fill in all fields");
-      return;
-    }
 
+        Alert.alert('Erreur', 'Veuillez remplir tous les champs');
+        return;
+    }
     setIsLoading(true);
-
     try {
-      const response = await fetch("http://192.168.1.88:5000/api/users/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+        // Send a POST request to the backend to log in the user
+        const response = await fetch(`${config.BACKEND_URL}/api/users/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (response.ok) {
-        console.log("User logged in successfully:", data);
-        Alert.alert("Success", "Login successful");
-        router.push("/tabs/home");
-      } else {
-        console.error("Login failed:", data.message);
-        Alert.alert("Error", data.message || "An error occurred");
-      }
+        if (response.ok) {
+            // Login successful
+            console.log('User logged in successfully:', data);
+            Alert.alert('Succès', 'Connexion réussie');
+            router.push('/(tabs)'); // Navigate to the main page
+        } else {
+            // Handle errors returned by the backend
+            console.error('Login failed:', data.message);
+            Alert.alert('Erreur', data.message || 'Une erreur est survenue');
+        }
     } catch (error) {
-      console.error("Error during login:", error);
-      Alert.alert("Error", "Unable to connect to the server");
+        // Handle network or unexpected errors
+        console.error('Error during login:', error);
+        Alert.alert('Erreur', 'Impossible de se connecter au serveur');
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  };
+};
 
   const handleSocialLogin = (userInfo, provider) => {
     console.log(`Login via ${provider}:`, userInfo);

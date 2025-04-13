@@ -20,6 +20,7 @@ import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import * as Facebook from "expo-auth-session/providers/facebook";
 import * as AuthSession from "expo-auth-session";
+import config from '../../config';
 
 // Allow web authentication to complete
 WebBrowser.maybeCompleteAuthSession();
@@ -141,19 +142,19 @@ export default function SignUp() {
 
     setIsLoading(true);
 
-    try {
-      // Send a POST request to the backend to register the user
-      const response = await fetch("http://192.168.1.88:5000/api/users/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: fullName,
-          email: email,
-          password: password,
-          role: "citoyen", // Default role, can be adjusted as needed
-        }),
-      });
 
+    try {
+        // Send a POST request to the backend to register the user
+        const response = await fetch(`${config.BACKEND_URL}/api/users/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: fullName,
+                email: email,
+                password: password,
+                role: 'citoyen', // Default role, can be adjusted as needed
+            }),
+        });
       const data = await response.json();
 
       if (response.ok) {
