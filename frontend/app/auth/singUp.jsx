@@ -7,7 +7,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import * as Facebook from 'expo-auth-session/providers/facebook';
 import * as AuthSession from 'expo-auth-session';
-import Config from 'react-native-config';
+import config from '../../config';
 
 // Permet à l'authentification web de fonctionner en redirection
 WebBrowser.maybeCompleteAuthSession();
