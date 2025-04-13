@@ -7,7 +7,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import * as Facebook from 'expo-auth-session/providers/facebook';
 import * as AuthSession from 'expo-auth-session';
-import Config from 'react-native-config';
+import config from '../../config';
 
 // Permet à l'authentification web de fonctionner en redirection
 WebBrowser.maybeCompleteAuthSession();
@@ -129,7 +129,7 @@ export default function SignUp() {
   const handleSignUp = async () => {
     try {
         // Send a POST request to the backend to register the user
-        const response = await fetch(`${Config.BACKEND_URL}/api/users/register`, {
+        const response = await fetch(`${config.BACKEND_URL}/api/users/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

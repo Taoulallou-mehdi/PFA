@@ -101,9 +101,9 @@ git clone https://github.com/Taoulallou-mehdi/PFA.git
 
 ## 9. Variables d'Environnement
 
-Créez un fichier `.env` dans les répertoires `backend` et `frontend` avec les variables suivantes :
+Créez un fichier `.env` dans la répertoire `backend` et un fichier `config.js` dans `frontend` avec les variables suivantes :
 
-### Backend 
+### Backend (.env)
 
 ```
 PORT=5000
@@ -113,10 +113,14 @@ GOOGLE_API_KEY=AIzaSyAKJ_vwMcRXiF-X5Ex_mqpR-loP8jGNHqY
 
 ```
 
-### Frontend
+### Frontend (config.js)
 
 ```
-BACKEND_URL=http://YOUR_LOCAL_IP:5000
+const config = {
+  BACKEND_URL: 'http://192.168.1.105:5000',
+};
+
+export default config;
 ```
 #### Savoir votre ip local :
 1. ouvrer le terminal 
