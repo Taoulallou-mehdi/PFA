@@ -11,6 +11,7 @@ import {
   Platform,
   Alert,
 } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect } from "react";
 import Colors from "../../constant/Colors";
 import { useRouter } from "expo-router";
@@ -121,7 +122,6 @@ export default function SignIn() {
     }
     setIsLoading(true);
     try {
-        // Send a POST request to the backend to log in the user
         const response = await fetch(`${config.BACKEND_URL}/api/users/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -131,17 +131,15 @@ export default function SignIn() {
         const data = await response.json();
 
         if (response.ok) {
-            // Login successful
+            await AsyncStorage.setItem('token', data.token);
             console.log('User logged in successfully:', data);
             Alert.alert('Succès', 'Connexion réussie');
-            router.push('/(tabs)'); // Navigate to the main page
+            router.push('/tabs/home'); 
         } else {
-            // Handle errors returned by the backend
             console.error('Login failed:', data.message);
             Alert.alert('Erreur', data.message || 'Une erreur est survenue');
         }
     } catch (error) {
-        // Handle network or unexpected errors
         console.error('Error during login:', error);
         Alert.alert('Erreur', 'Impossible de se connecter au serveur');
     } finally {

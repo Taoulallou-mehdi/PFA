@@ -7,6 +7,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
@@ -17,28 +18,35 @@ export default function Profile() {
 
   // Fetch user information from the backend
   useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const response = await fetch("http://192.168.1.88:5000/api/users/me", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer YOUR_ACCESS_TOKEN`, // Replace with your token
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data);
-        } else {
-          Alert.alert("Error", "Failed to fetch user information");
-        }
-      } catch (error) {
-        console.error("Error fetching user info:", error);
-        Alert.alert("Error", "Unable to connect to the server");
-      } finally {
-        setLoading(false);
+  const fetchUserInfo = async () => {
+    setLoading(true);
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        Alert.alert("Error", "No token found. Please log in again.");
+        router.replace("/auth/singin");
+        return;
       }
-    };
+      const response = await fetch(`${config.BACKEND_URL}/api/users/me`, {
+        method: "GET",
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data);
+      } else {
+        Alert.alert("Error", "Failed to fetch user information");
+      }
+    } catch (error) {
+      console.error("Error fetching user info:", error);
+      Alert.alert("Error", "Unable to connect to the server");
+    } finally {
+      setLoading(false);
+    }
+  };
 
     fetchUserInfo();
   }, []);
@@ -70,7 +78,8 @@ export default function Profile() {
         {/* Logout Button */}
         <TouchableOpacity
           style={styles.logoutButton}
-          onPress={() => {
+          onPress={async () => {
+            await AsyncStorage.removeItem("token");
             Alert.alert("Logged Out", "You have been logged out.");
             router.replace("/auth/singin");
           }}
