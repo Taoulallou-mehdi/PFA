@@ -73,6 +73,16 @@ const UserController = {
         } catch (err) {
             next(err);
         }
+    },
+    async getUserSelf(req, res, next) {
+        try {
+            const userId = req.user.id; // Assuming user ID is stored in req.user after authentication
+            const user = await UserDAO.getUserById(userId);
+            if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' });
+            res.json(user);
+        } catch (err) {
+            next(err);
+        }
     }
 };
 
