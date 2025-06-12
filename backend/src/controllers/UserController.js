@@ -1,6 +1,7 @@
 const UserDAO = require('../DAO/UserDAO');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const authenticateToken = require('../middleware/authenticateToken');
 
 const UserController = {
     // Register a new user
@@ -137,5 +138,6 @@ const UserController = {
         }
     }
 };
+
 
 module.exports = UserController;

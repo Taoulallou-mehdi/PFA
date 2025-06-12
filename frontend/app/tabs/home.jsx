@@ -3,8 +3,9 @@ import React from "react";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { MaterialCommunityIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
+import MapView from 'react-native-maps';
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
 export default function Home() {
   const router = useRouter();
@@ -12,17 +13,24 @@ export default function Home() {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      
-     
-      
-      {/* Map Container */}
+
+      {/* Map Container - now takes most of the screen with a shadow and border */}
       <View style={styles.mapContainer}>
-        <MaterialCommunityIcons name="map-outline" size={48} color="#757575" />
-        <Text style={styles.mapPlaceholder}>Your Map Will Appear Here</Text>
-        {/* Map will be integrated here */}
+        <MapView
+          style={styles.map}
+          initialRegion={{
+            latitude: 31.7917, // Morocco center latitude
+            longitude: -7.0926, // Morocco center longitude
+            latitudeDelta: 3,
+            longitudeDelta: 3,
+          }}
+        />
+        <View style={styles.mapOverlay}>
+          <Text style={styles.mapTitle}>Morocco Waste Map</Text>
+        </View>
       </View>
       
-      {/* Action Cards */}
+      {/* Action Cards - smaller, floating, and with glass effect */}
       <ScrollView 
         horizontal 
         showsHorizontalScrollIndicator={false}
@@ -30,11 +38,11 @@ export default function Home() {
       >
         {/* Report Waste Card */}
         <TouchableOpacity
-          style={styles.card}
+          style={[styles.card, { backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e53935' }]}
           onPress={() => router.push("/tabs/reportwaste")}
         >
           <View style={[styles.cardIconContainer, { backgroundColor: '#ffe0e0' }]}>
-            <MaterialCommunityIcons name="trash-can-outline" size={28} color="#e53935" />
+            <MaterialCommunityIcons name="trash-can-outline" size={22} color="#e53935" />
           </View>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Report Waste</Text>
@@ -46,11 +54,11 @@ export default function Home() {
 
         {/* Collect Waste Card */}
         <TouchableOpacity
-          style={styles.card}
+          style={[styles.card, { backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#009688' }]}
           onPress={() => router.push("/tabs/collectwaste")}
         >
           <View style={[styles.cardIconContainer, { backgroundColor: '#e0f2f1' }]}>
-            <Ionicons name="locate-outline" size={28} color="#009688" />
+            <Ionicons name="locate-outline" size={22} color="#009688" />
           </View>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Collect Waste</Text>
@@ -62,11 +70,11 @@ export default function Home() {
 
         {/* Rewards Card */}
         <TouchableOpacity
-          style={styles.card}
+          style={[styles.card, { backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#ffc107' }]}
           onPress={() => router.push("/tabs/Rewards")}
         >
           <View style={[styles.cardIconContainer, { backgroundColor: '#fff8e1' }]}>
-            <FontAwesome5 name="award" size={28} color="#ffc107" />
+            <FontAwesome5 name="award" size={22} color="#ffc107" />
           </View>
           <View style={styles.cardContent}>
             <Text style={styles.cardTitle}>Rewards</Text>
@@ -77,21 +85,8 @@ export default function Home() {
         </TouchableOpacity>
       </ScrollView>
       
-      {/* Quick Actions */}
-      <View style={styles.quickActions}>
-        <TouchableOpacity style={styles.quickActionButton}>
-          <Ionicons name="location-outline" size={16} color="#4CAF50" style={styles.actionIcon} />
-          <Text style={styles.quickActionText}>Nearby</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.quickActionButton}>
-          <MaterialCommunityIcons name="history" size={16} color="#4CAF50" style={styles.actionIcon} />
-          <Text style={styles.quickActionText}>My Reports</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.quickActionButton}>
-          <Ionicons name="stats-chart-outline" size={16} color="#4CAF50" style={styles.actionIcon} />
-          <Text style={styles.quickActionText}>Stats</Text>
-        </TouchableOpacity>
-      </View>
+      {/* Quick Actions - with rounded background and shadow */}
+      
     </View>
   );
 }
@@ -99,108 +94,124 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
-  },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    backgroundColor: "#43a047", // Slightly darker green for better contrast
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#ffffff",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#e8f5e9",
-    marginTop: 5,
+    backgroundColor: "#e8f5e9",
+    alignItems: "center",
+    justifyContent: "flex-start",
   },
   mapContainer: {
-    height: 250,
-    margin: 15,
+    width: width * 0.96,
+    height: height * 0.58, // Bigger map
+    marginTop: 18,
+    marginBottom: 10,
     backgroundColor: "#f5f5f5",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 20,
+    borderRadius: 28,
+    overflow: "hidden",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.13,
+    shadowRadius: 12,
+    elevation: 5,
+    alignSelf: "center",
+    position: "relative",
   },
-  mapPlaceholder: {
-    fontSize: 16,
-    color: "#757575",
-    fontStyle: "italic",
-    marginTop: 8,
+  map: {
+    width: "100%",
+    height: "100%",
+  },
+  mapOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    paddingVertical: 10,
+    backgroundColor: "rgba(76,175,80,0.85)",
+    alignItems: "center",
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    zIndex: 2,
+  },
+  mapTitle: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 18,
+    letterSpacing: 1,
   },
   cardsContainer: {
-    padding: 15,
-    paddingRight: 5,
+    paddingVertical: 8,
+    paddingLeft: 10,
+    alignItems: "center",
+    marginBottom: 5,
   },
   card: {
-    width: width * 0.75,
-    backgroundColor: "#ffffff",
+    width: width * 0.38,
+    minHeight: 90,
     borderRadius: 16,
-    marginRight: 15,
+    marginRight: 12,
     flexDirection: "row",
-    padding: 15,
+    padding: 10,
+    borderWidth: 1.5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.10,
     shadowRadius: 8,
-    elevation: 3,
+    elevation: 2,
+    alignItems: "center",
+    backdropFilter: "blur(8px)", // for web, ignored on native
   },
   cardIconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
+    width: 34,
+    height: 34,
+    borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 15,
+    marginRight: 8,
   },
   cardContent: {
     flex: 1,
     justifyContent: "center",
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: "bold",
     color: "#333",
-    marginBottom: 5,
+    marginBottom: 2,
   },
   cardDescription: {
-    fontSize: 14,
+    fontSize: 10,
     color: "#757575",
-    lineHeight: 20,
+    lineHeight: 14,
   },
   quickActions: {
     flexDirection: "row",
     justifyContent: "space-around",
-    padding: 15,
-    backgroundColor: "#ffffff",
-    borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
-    marginTop: 10,
-    paddingBottom: 25,
+    alignItems: "center",
+    width: width * 0.94,
+    backgroundColor: "#fff",
+    borderRadius: 22,
+    marginTop: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+    alignSelf: "center",
   },
   quickActionButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     backgroundColor: "#e8f5e9",
-    borderRadius: 20,
+    borderRadius: 16,
     flexDirection: "row",
     alignItems: "center",
+    marginHorizontal: 4,
   },
   actionIcon: {
     marginRight: 6,
   },
   quickActionText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "500",
     color: "#4CAF50",
   }

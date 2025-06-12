@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const authenticate = require('../middleware/authenticateToken');
 
 // Middleware to authenticate JWT token
 function authenticateToken(req, res, next) {
@@ -30,6 +31,12 @@ function authenticateToken(req, res, next) {
     // Verify the token with the secret key
     jwt.verify(token, jwtSecret, (err, user) => {
         if (err) {
+            // Handling different types of JWT errors
+            if (err.name === 'TokenExpiredError') {
+                console.log("Token expired:", err);
+                return res.status(401).json({ message: 'Token expiré, veuillez vous reconnecter' }); // Token expired
+            }
+
             console.log("Token verification failed:", err);
             return res.status(403).json({ message: 'Token invalide' }); // Invalid token
         }
