@@ -14,15 +14,15 @@ export default function Home() {
     <View style={styles.container}>
       <StatusBar style="light" />
 
-      {/* Map Container - now takes most of the screen with a shadow and border */}
+
       <View style={styles.mapContainer}>
         <MapView
           style={styles.map}
           initialRegion={{
-            latitude: 31.7917, // Morocco center latitude
-            longitude: -7.0926, // Morocco center longitude
-            latitudeDelta: 3,
-            longitudeDelta: 3,
+            latitude: 34.0152581, 
+            longitude: -5.0052666, 
+            latitudeDelta: 1,
+            longitudeDelta: 1,
           }}
         />
         <View style={styles.mapOverlay}>

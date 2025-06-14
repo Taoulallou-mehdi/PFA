@@ -8,6 +8,7 @@ const UserRoutes = require('./src/routes/UserRoutes');
 const PoubelleRoutes = require('./src/routes/PoubelleRoutes');
 const CollecteRoutes = require('./src/routes/CollecteRoutes');
 const TrajetRoutes = require('./src/routes/TrajetRoutes');
+const RewardRoutes = require('./src/routes/RewardRoutes');
 const { errorHandler, notFoundHandler } = require('./src/middleware/errorHandler');
 const rateLimit = require('express-rate-limit');
 
@@ -48,6 +49,9 @@ app.use('/api/users', UserRoutes);
 app.use('/api/poubelles', PoubelleRoutes);
 app.use('/api/collectes', CollecteRoutes);
 app.use('/api/trajets', TrajetRoutes);
+app.use('/api/rewards', RewardRoutes);
+app.use(notFoundHandler);
+
 
 // Error handling middleware
 app.use(notFoundHandler); // Handles 404 errors
