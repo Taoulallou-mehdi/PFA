@@ -1,4 +1,6 @@
 # Système Intelligent de Gestion des Déchets Urbains
+![image](https://github.com/user-attachments/assets/e9590571-e894-4216-860b-eb9b026e7587)![image](https://github.com/user-attachments/assets/ba986205-b1c3-44a3-925e-dad6ef35f686)
+
 
 Projet de Fin d'Études (PFA) - Développement d'une application mobile MERN avec intelligence artificielle
 
@@ -34,15 +36,13 @@ Développer une application mobile MERN qui intègre l'intelligence artificielle
 | Backend & API            | Node.js, Express.js, MongoDB                                                        |
 | Authentification         | JWT, bcrypt                                                                         |
 | Base de Données          | MongoDB                                                                             |
-| Capteurs IoT(optionnel)  | ESP32, capteurs ultrasons                                                           |
 | Optimisation des trajets | Google Directions API, Algorithme Dijkstra / A*                                     |
 | Prédiction IA            | Scikit-Learn (Régression linéaire multiple), xgboost (Régression linéaire multiple) |
 
 ## 5. Intelligence Artificielle
 
 - Prédiction du remplissage des poubelles avec Machine Learning.
-- Optimisation des trajets des camions avec Google Directions API ou intelligence artificielle.
-- (Optionnel) Détection automatique des déchets avec vision par ordinateur.
+- Optimisation des trajets des camions avec Google Directions API.
 
 ## 6. Plan de Développement et Répartition du Travail
 
@@ -142,7 +142,7 @@ Wireless LAN adapter Wi-Fi:
 
 ## 10. Notes Importantes
 
-- Collaboration : Chaque membre de l'équipe doit configurer son propre fichier .env en fonction de son environnement local .
+- Collaboration : Chaque membre de l'équipe doit configurer son propre fichier .env et config.js en fonction de son environnement local .
 
 ## 11. Conclusion
 
