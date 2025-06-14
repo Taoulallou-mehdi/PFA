@@ -9,13 +9,12 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
-  Platform,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 
-// Import Camera conditionally
 let Camera;
 try {
   Camera = require('expo-camera').Camera;
@@ -23,7 +22,8 @@ try {
   console.log('Camera module not available');
 }
 
-export default function ReportWaste({ navigation }) {
+export default function ReportWaste() {
+  const navigation = useNavigation();
   const [hasPermission, setHasPermission] = useState(null);
   const [cameraRef, setCameraRef] = useState(null);
   const [image, setImage] = useState(null);
@@ -33,58 +33,64 @@ export default function ReportWaste({ navigation }) {
   const [showCamera, setShowCamera] = useState(false);
   const [cameraAvailable, setCameraAvailable] = useState(!!Camera);
 
-  // Request camera and location permissions if camera is available
   useEffect(() => {
     if (cameraAvailable) {
-      (async () => {
-        try {
-          const cameraStatus = await Camera.requestCameraPermissionsAsync();
-          setHasPermission(cameraStatus.status === 'granted');
-        } catch (error) {
-          console.log('Error requesting camera permissions:', error);
-          setCameraAvailable(false);
-        }
-      })();
+      requestCameraPermission();
     }
   }, [cameraAvailable]);
 
-  // Request location permissions
   useEffect(() => {
-    (async () => {
-      try {
-        const locationStatus = await Location.requestForegroundPermissionsAsync();
-        if (locationStatus.status === 'granted') {
-          const currentLocation = await Location.getCurrentPositionAsync({});
-          setLocation(currentLocation);
-          
-          // Get readable address
-          try {
-            const geocode = await Location.reverseGeocodeAsync({
-              latitude: currentLocation.coords.latitude,
-              longitude: currentLocation.coords.longitude,
-            });
-            
-            if (geocode.length > 0) {
-              const loc = geocode[0];
-              setAddress(`${loc.street || ''} ${loc.city || ''}, ${loc.region || ''}`);
-            }
-          } catch (error) {
-            setAddress('Location detected (coordinates only)');
-          }
-        }
-      } catch (error) {
-        console.log('Error getting location:', error);
-        setAddress('Location not available');
-      }
-    })();
+    requestLocationPermission();
   }, []);
+
+  const requestCameraPermission = async () => {
+    try {
+      const cameraStatus = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(cameraStatus.status === 'granted');
+    } catch (error) {
+      console.log('Error requesting camera permissions:', error);
+      setCameraAvailable(false);
+    }
+  };
+
+  const requestLocationPermission = async () => {
+    try {
+      const locationStatus = await Location.requestForegroundPermissionsAsync();
+      if (locationStatus.status === 'granted') {
+        const currentLocation = await Location.getCurrentPositionAsync({});
+        setLocation(currentLocation);
+        getAddressFromLocation(currentLocation);
+      } else {
+        Alert.alert('Location Permission', 'Permission to access location was denied.');
+      }
+    } catch (error) {
+      console.log('Error getting location:', error);
+      setAddress('Location not available');
+    }
+  };
+
+  const getAddressFromLocation = async (currentLocation) => {
+    try {
+      const geocode = await Location.reverseGeocodeAsync({
+        latitude: currentLocation.coords.latitude,
+        longitude: currentLocation.coords.longitude,
+      });
+
+      if (geocode.length > 0) {
+        const loc = geocode[0];
+        setAddress(`${loc.street || ''} ${loc.city || ''}, ${loc.region || ''}`);
+      }
+    } catch (error) {
+      setAddress('Location detected (coordinates only)');
+    }
+  };
 
   const takePicture = async () => {
     if (cameraRef) {
       try {
         const photo = await cameraRef.takePictureAsync();
-        setImage(photo.uri); // Save the image URI
-        setShowCamera(false); // Hide the camera view
+        setImage(photo.uri);
+        setShowCamera(false);
       } catch (error) {
         Alert.alert('Error', 'Failed to take picture');
       }
@@ -121,23 +127,17 @@ export default function ReportWaste({ navigation }) {
     
     setLoading(true);
     
-    // Mock submission - in real app, this would send data to your server
     setTimeout(() => {
       setLoading(false);
-      Alert.alert(
-        'Report Submitted!',
-        'Thank you for your contribution! The waste collection team has been notified.',
-        [
-          { 
-            text: 'OK', 
-            onPress: () => {
-              // Reset form
-              setImage(null);
-              navigation.navigate('Home');
-            } 
+      Alert.alert('Report Submitted!', 'Thank you for your contribution! The waste collection team has been notified.', [
+        { 
+          text: 'OK',
+          onPress: () => {
+            setImage(null);
+            navigation.navigate('Home');
           },
-        ]
-      );
+        },
+      ]);
     }, 1500);
   };
 
@@ -147,15 +147,14 @@ export default function ReportWaste({ navigation }) {
         <Text style={styles.errorText}>Camera module not available</Text>
         <Text>You can still upload images from your gallery</Text>
         <TouchableOpacity 
-          style={[styles.submitButton, {marginTop: 20}]}
-          onPress={() => setCameraAvailable(false)}>
+          style={[styles.submitButton, { marginTop: 20 }]}
+          onPress={() => setCameraAvailable(false)}
+        >
           <Text style={styles.submitButtonText}>Continue without camera</Text>
         </TouchableOpacity>
       </View>
     );
   }
-  
-  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -176,7 +175,8 @@ export default function ReportWaste({ navigation }) {
                 
                 <TouchableOpacity 
                   style={styles.cancelButton}
-                  onPress={() => setShowCamera(false)}>
+                  onPress={() => setShowCamera(false)}
+                >
                   <Text style={styles.cancelText}>Cancel</Text>
                 </TouchableOpacity>
               </View>
@@ -190,23 +190,21 @@ export default function ReportWaste({ navigation }) {
                   <Image source={{ uri: image }} style={styles.imagePreview} />
                   <TouchableOpacity 
                     style={styles.retakeButton}
-                    onPress={() => setImage(null)}>
+                    onPress={() => setImage(null)}
+                  >
                     <Text style={styles.retakeText}>Retake</Text>
                   </TouchableOpacity>
                 </View>
               ) : (
                 <View style={styles.uploadSection}>
                   <Text style={styles.uploadTitle}>Report Waste Collection</Text>
-                  <Text style={styles.uploadSubtitle}>
-                    Upload a photo of waste that needs to be collected
-                  </Text>
-                  
+                  <Text style={styles.uploadSubtitle}>Upload a photo of waste that needs to be collected</Text>
+
                   <View style={styles.uploadButtons}>
-                    
-                    
                     <TouchableOpacity 
                       style={styles.uploadOption}
-                      onPress={pickImage}>
+                      onPress={pickImage}
+                    >
                       <View style={styles.uploadIconBg}>
                         <Ionicons name="images" size={28} color="#4CAF50" />
                       </View>
@@ -216,7 +214,7 @@ export default function ReportWaste({ navigation }) {
                 </View>
               )}
             </View>
-            
+
             {image && (
               <>
                 {loading ? (
@@ -236,7 +234,8 @@ export default function ReportWaste({ navigation }) {
                     
                     <TouchableOpacity 
                       style={styles.submitButton}
-                      onPress={handleSubmit}>
+                      onPress={handleSubmit}
+                    >
                       <Text style={styles.submitButtonText}>Submit Report</Text>
                     </TouchableOpacity>
                   </View>

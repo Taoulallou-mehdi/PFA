@@ -9,7 +9,7 @@ import { BlurView } from 'expo-blur';
 import axios from 'axios'; // Make sure to install axios: npm install axios
 
 // Create a service file to handle API calls
-const API_URL = 'http://192.168.1.88:5000/api'; // Replace with your backend URL
+const API_URL = 'http://192.168.0.126:5000/api'; // Replace with your backend URL
 
 // User service for API calls
 const userService = {

@@ -11,6 +11,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
+// Define the config object or import it
+const config = {
+  BACKEND_URL: "http://your-backend-url.com" // Replace with your backend URL
+};
+
 export default function Profile() {
   const router = useRouter();
   const [user, setUser] = useState(null);
@@ -18,35 +23,42 @@ export default function Profile() {
 
   // Fetch user information from the backend
   useEffect(() => {
-  const fetchUserInfo = async () => {
-    setLoading(true);
-    try {
-      const token = await AsyncStorage.getItem('token');
-      if (!token) {
-        Alert.alert("Error", "No token found. Please log in again.");
-        router.replace("/auth/singin");
-        return;
-      }
-      const response = await fetch(`${config.BACKEND_URL}/api/users/me`, {
-        method: "GET",
-        headers: {
-          Authorization: `${token}`,
-        },
-      });
+    const fetchUserInfo = async () => {
+      setLoading(true);
+      try {
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+          Alert.alert("Error", "No token found. Please log in again.");
+          router.replace("/auth/signin");
+          return;
+        }
 
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data);
-      } else {
-        Alert.alert("Error", "Failed to fetch user information");
+        const response = await fetch(`${config.BACKEND_URL}/api/users/me`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`, // Ensure token is in the correct format
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data);
+        } else {
+          const errorData = await response.json();
+          Alert.alert("Error", errorData.message || "Failed to fetch user information");
+          if (response.status === 403) {
+            // Token is invalid or expired
+            Alert.alert("Session Expired", "Please log in again.");
+            router.replace("/auth/signin");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+        Alert.alert("Error", "Unable to connect to the server");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching user info:", error);
-      Alert.alert("Error", "Unable to connect to the server");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
     fetchUserInfo();
   }, []);
@@ -61,8 +73,6 @@ export default function Profile() {
 
   return (
     <SafeAreaView style={styles.container}>
-      
-
       <View style={styles.content}>
         {/* Small Profile Window */}
         <View style={styles.profileWindow}>
@@ -81,7 +91,7 @@ export default function Profile() {
           onPress={async () => {
             await AsyncStorage.removeItem("token");
             Alert.alert("Logged Out", "You have been logged out.");
-            router.replace("/auth/singin");
+            router.replace("/auth/signin");
           }}
         >
           <Text style={styles.logoutText}>Logout</Text>
