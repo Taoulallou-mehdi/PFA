@@ -6,6 +6,44 @@ import { FontAwesome5, MaterialCommunityIcons, Ionicons } from '@expo/vector-ico
 const { width, height } = Dimensions.get("window");
 
 export default function Rewards() {
+  const [user, setUser] = useState(null);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUserAndLeaderboard = async () => {
+      setLoading(true);
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        return; // Handle case where the token is missing (redirect to login)
+      }
+
+      // Fetch user info
+      const userResponse = await fetch(`${config.BACKEND_URL}/api/users/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const userData = await userResponse.json();
+      setUser(userData);
+
+      // Fetch leaderboard
+      const leaderboardResponse = await fetch(`${config.BACKEND_URL}/api/users/leaderboard`);
+      const leaderboardData = await leaderboardResponse.json();
+      setLeaderboard(leaderboardData);
+
+      setLoading(false);
+    };
+
+    fetchUserAndLeaderboard();
+  }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#1E8E3E" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar style="light" />

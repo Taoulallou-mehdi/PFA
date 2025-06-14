@@ -14,7 +14,7 @@ export default function Home() {
     <View style={styles.container}>
       <StatusBar style="light" />
 
-      {/* Map Container */}
+
       <View style={styles.mapContainer}>
         <MapView
           style={styles.map}
